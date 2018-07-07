@@ -1,10 +1,11 @@
-// import * as unibeautify from "unibeautify";
 import * as Genetic from "genetic-js";
 
-const genetic = Genetic.create();
+type Entity = string;
+const genetic = Genetic.create<Entity>();
 genetic.optimize = Genetic.Optimize.Maximize;
 genetic.select1 = Genetic.Select1.Tournament2;
 genetic.select2 = Genetic.Select2.Tournament2;
+
 genetic.seed = function() {
   function randomString(len: number) {
     let text = "";
@@ -18,7 +19,8 @@ genetic.seed = function() {
   // create random strings that are equal in length to solution
   return randomString(this.userData["solution"].length);
 };
-genetic.mutate = function(entity: any) {
+
+genetic.mutate = function(entity: Entity) {
   function replaceAt(str: string, index: number, character: string) {
     return (
       str.substr(0, index) + character + str.substr(index + character.length)
@@ -35,7 +37,8 @@ genetic.mutate = function(entity: any) {
     )
   );
 };
-genetic.crossover = function(mother: any, father: any) {
+
+genetic.crossover = function(mother: Entity, father: Entity) {
   // two-point crossover
   var len = mother.length;
   var ca = Math.floor(Math.random() * len);
@@ -53,7 +56,8 @@ genetic.crossover = function(mother: any, father: any) {
 
   return [son, daughter];
 };
-genetic.fitness = function(entity: any) {
+
+genetic.fitness = function(entity: Entity) {
   var fitness = 0;
 
   var i;
@@ -71,57 +75,40 @@ genetic.fitness = function(entity: any) {
   }
   return fitness;
 };
-genetic.generation = function(pop: any, generation: any, stats: any) {
+
+genetic.generation = function(
+  pop: GeneticJs.Population<Entity>,
+  generation: number,
+  stats: GeneticJs.Stats
+) {
   // stop running once we've reached the solution
   return pop[0].entity != this.userData["solution"];
 };
-genetic.notification = function(pop: any, generation: any, stats: any, isFinished: boolean) {
-  // function lerp(a, b, p) {
-  //     return a + (b - a) * p;
-  // }
 
-  // var value = pop[0].entity;
-  // this.last = this.last || value;
-
-  // if (pop != 0 && value == this.last)
-  //     return;
-
-  // var solution = [];
-  // var i;
-  // for (i = 0; i < value.length; ++i) {
-  //     var diff = value.charCodeAt(i) - this.last.charCodeAt(i);
-  //     var style = "background: transparent;";
-  //     if (diff > 0) {
-  //         style = "background: rgb(0,200,50); color: #fff;";
-  //     } else if (diff < 0) {
-  //         style = "background: rgb(0,100,50); color: #fff;";
-  //     }
-  //     solution.push('<span style="' + style + '">' + value[i] + "</span>");
-  // }
-
-  // var buf = "";
-  // buf += "<tr>";
-  // buf += "<td>" + generation + "</td>";
-  // buf += "<td>" + pop[0].fitness.toPrecision(5) + "</td>";
-  // buf += "<td>" + solution.join("") + "</td>";
-  // buf += "</tr>";
-  // $("#results tbody").prepend(buf);
-
-  // this.last = value;
+genetic.notification = function(
+  pop: GeneticJs.Population<Entity>,
+  generation: number,
+  stats: GeneticJs.Stats,
+  isFinished: boolean
+) {
   if (isFinished) {
-    console.log(JSON.stringify({ pop, generation, stats }));
+    console.log(
+      JSON.stringify({ solution: pop[0], generation, stats }, null, 2)
+    );
   }
 };
 
-var config = {
+const config = {
   iterations: 4000,
   size: 250,
   crossover: 0.3,
   mutation: 0.3,
   skip: 20,
 };
-var userData = {
+
+const userData = {
   solution:
     "Insanity is doing the same thing over and over again and expecting different results",
 };
+
 genetic.evolve(config, userData);
