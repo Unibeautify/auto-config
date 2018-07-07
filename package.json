@@ -1,0 +1,31 @@
+{
+  "name": "@unibeautify/auto-config",
+  "version": "0.1.0",
+  "description": "Attempt to automatically determine best Unibeautify configuration for desired code format",
+  "main": "index.js",
+  "scripts": {
+    "test": "ts-node src/index.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Unibeautify/auto-config.git"
+  },
+  "keywords": [
+    "unibeautify"
+  ],
+  "author": "Glavin Wiechert",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Unibeautify/auto-config/issues"
+  },
+  "homepage": "https://github.com/Unibeautify/auto-config#readme",
+  "devDependencies": {
+    "@types/node": "^10.5.2",
+    "ts-node": "^7.0.0",
+    "typescript": "^2.9.2",
+    "unibeautify": "^0.15.0"
+  },
+  "dependencies": {
+    "genetic-js": "^0.1.14"
+  }
+}
