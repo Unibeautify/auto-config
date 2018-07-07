@@ -75,7 +75,12 @@ genetic.generation = function(pop: any, generation: any, stats: any) {
   // stop running once we've reached the solution
   return pop[0].entity != this.userData["solution"];
 };
-genetic.notification = function(pop: any, generation: any, stats: any, isFinished: boolean) {
+genetic.notification = function(
+  pop: any,
+  generation: any,
+  stats: any,
+  isFinished: boolean
+) {
   // function lerp(a, b, p) {
   //     return a + (b - a) * p;
   // }

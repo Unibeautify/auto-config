@@ -1,1 +1,1 @@
-declare module 'genetic-js';
+declare module "genetic-js";
