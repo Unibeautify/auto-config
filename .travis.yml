@@ -1,0 +1,14 @@
+language: node_js
+node_js:
+  - "10"
+cache:
+  directories:
+  - node_modules # NPM packages
+script:
+  - npm run lint
+  - npm run build
+  - jest --maxWorkers=4
+notifications:
+  email:
+    on_success: never
+    on_failure: change

@@ -7,23 +7,18 @@
         "strictNullChecks": true,
         "preserveConstEnums": true,
         "sourceMap": true,
-        "target": "ES6",
+        "target": "es2016",
         "declaration": true,
         "moduleResolution": "node",
         "outDir": "dist",
-        "rootDir": "./src",
+        "rootDir": ".",
         "typeRoots": [
             "./src/@types",
             "./node_modules/@types"
-        ],
-        "types": [
-            "node"
         ]
     },
     "include": [
-        "./src/**/*.ts"
-    ],
-    "exclude": [
-        "./node_modules"
+        "src/**/*",
+        "test/**/*"
     ]
 }
