@@ -1,43 +1,72 @@
 import * as Genetic from "@glavin001/genetic-js";
-import Unibeautify, {
+import {
+  Unibeautify,
+  newUnibeautify,
   OptionValues,
   OptionsRegistry,
   Language,
   LanguageOptionValues,
   Option,
+  Beautifier,
 } from "unibeautify";
 import * as _ from "lodash";
 import * as fastLevenshtein from "fast-levenshtein";
+import * as DataLoader from "dataloader";
+import * as stringify from "json-stable-stringify";
 
 import beautifiers from "./beautifiers";
-
-Unibeautify.loadBeautifiers(beautifiers);
 
 interface Entity {
   options: OptionValues;
 }
 
 interface UserData {
-  beautifiers: string[];
+  // beautifiers: string[];
+  beautifiers: Beautifier[];
   language: string;
   originalText: string;
   desiredText: string;
 }
 
-class PhraseGenetic extends Genetic.Genetic<Entity, UserData> {
+class UnibeautifyGenetic extends Genetic.Genetic<Entity, UserData> {
   optimize = Genetic.Optimize.Minimize;
   select1 = Genetic.Select1.Tournament2;
   select2 = Genetic.Select2.Tournament2;
 
+  private readonly unibeautify: Unibeautify;
+  // private readonly beautifiers: Beautifier[];
+
+  constructor({
+    // beautifiers,
+    configuration,
+    userData,
+  }: {
+    // beautifiers: Beautifier[];
+    configuration: Partial<Genetic.Configuration>;
+    userData: UserData;
+  }) {
+    super(configuration, userData);
+    // this.beautifiers = beautifiers;
+    this.unibeautify = newUnibeautify();
+    this.initializeUnibeautify();
+  }
+
+  private initializeUnibeautify() {
+    this.unibeautify.loadBeautifiers(this.beautifiers);
+  }
+
+  private get beautifiers(): Beautifier[] {
+    return this.userData.beautifiers;
+  }
+
   seed() {
-    // const beautifierNames: string[] = beautifiers.map(b => b.name);
     const options: Entity["options"] = this.optionKeys.reduce(
       (options: Entity["options"], optionKey: string) => ({
         ...options,
         [optionKey]: this.randomValue(this.optionsRegistry[optionKey]),
       }),
       {
-        beautifiers: _.shuffle(this.beautifierNames),
+        beautifiers: _.shuffle(this.supportedBeautifierNames),
       } as any
     );
     return {
@@ -45,23 +74,62 @@ class PhraseGenetic extends Genetic.Genetic<Entity, UserData> {
     };
   }
 
-  private get beautifierNames(): string[] {
-    return this.userData.beautifiers;
+  private get supportedBeautifierNames(): string[] {
+    return this.userData.beautifiers.map(beautifier => beautifier.name);
   }
 
   mutate(entity: Entity) {
-    const shouldShuffleBeautifiers =
-      Math.floor(Math.random() * (this.optionKeys.length + 1)) < 1;
-    if (shouldShuffleBeautifiers) {
-      return {
-        ...entity,
-        options: {
-          ...entity.options,
-          beautifiers: _.shuffle((<any>entity.options).beautifiers),
-        },
-      };
+    const enabledBeautifiers = (<any>entity.options).beautifiers;
+    const hasMultipleBeautifiers = enabledBeautifiers.length > 1;
+
+    const extraOperations = 3;
+    const chosenOperation = Math.floor(
+      Math.random() * (this.optionKeys.length + extraOperations)
+    );
+
+    switch (chosenOperation) {
+      case 0: {
+        // Remove
+        if (hasMultipleBeautifiers) {
+          const removeBeautifier = this.randomKeyFromArray(enabledBeautifiers);
+          return {
+            ...entity,
+            options: {
+              ...entity.options,
+              beautifiers: _.without(enabledBeautifiers, removeBeautifier),
+            },
+          };
+        }
+      }
+      case 1: {
+        // Add
+        const missingBeautifiers: string[] = _.difference(
+          enabledBeautifiers,
+          this.supportedBeautifierNames
+        );
+        if (missingBeautifiers.length > 0) {
+          const addBeautifier = this.randomKeyFromArray(missingBeautifiers);
+          return {
+            ...entity,
+            options: {
+              ...entity.options,
+              beautifiers: [...beautifiers, addBeautifier],
+            },
+          };
+        }
+      }
+      case 2: {
+        // Shuffle
+        return {
+          ...entity,
+          options: {
+            ...entity.options,
+            beautifiers: _.shuffle((<any>entity.options).beautifiers),
+          },
+        };
+      }
     }
-    // console.log("mutate");
+
     const optionKey = this.randomOptionKey();
     const option = this.optionsRegistry[optionKey];
     return {
@@ -75,9 +143,12 @@ class PhraseGenetic extends Genetic.Genetic<Entity, UserData> {
 
   private randomOptionKey(): string {
     const optionKeys = this.optionKeys;
-    const len = optionKeys.length;
-    const optionIndex = Math.floor(Math.random() * len);
-    return optionKeys[optionIndex];
+    return this.randomKeyFromArray(optionKeys);
+  }
+
+  private randomKeyFromArray(arr: string[]): string {
+    const index = Math.floor(Math.random() * arr.length);
+    return arr[index];
   }
 
   private randomValue(option: Option): any {
@@ -110,7 +181,6 @@ class PhraseGenetic extends Genetic.Genetic<Entity, UserData> {
   }
 
   crossover(mother: Entity, father: Entity): [Entity, Entity] {
-    // console.log("crossover");
     // two-point crossover
     const optionKeys = this.optionKeys;
     const len = optionKeys.length;
@@ -125,10 +195,10 @@ class PhraseGenetic extends Genetic.Genetic<Entity, UserData> {
     const fatherOptions = father.options;
     const motherOptions = mother.options;
 
-    const beautifiers = _.uniq([
-      ...(<any>motherOptions)["beautifiers"],
-      ...(<any>fatherOptions)["beautifiers"],
-    ]);
+    const beautifiers = _.union(
+      (<any>motherOptions)["beautifiers"],
+      (<any>fatherOptions)["beautifiers"]
+    );
 
     const sonOptions: Entity["options"] = {
       beautifiers,
@@ -156,11 +226,11 @@ class PhraseGenetic extends Genetic.Genetic<Entity, UserData> {
   }
 
   private get optionsRegistry(): OptionsRegistry {
-    return Unibeautify.getOptionsSupportedForLanguage(this.language);
+    return this.unibeautify.getOptionsSupportedForLanguage(this.language);
   }
 
   private get language(): Language {
-    return Unibeautify.findLanguages({
+    return this.unibeautify.findLanguages({
       name: this.languageName,
     })[0];
   }
@@ -170,24 +240,45 @@ class PhraseGenetic extends Genetic.Genetic<Entity, UserData> {
   }
 
   fitness(entity: Entity): Promise<number> {
-    return this.beautify(entity).then(beautifiedText => {
+    return this.beautify(entity).then((beautifiedText: string) => {
       const diffCount = fastLevenshtein.get(this.desiredText, beautifiedText);
-      // console.log("fitness after", fitness, this.desiredText, beautifiedText);
-      const fitness: number =
-        diffCount * 100 + Math.max(0, _.keys(entity.options).length - 1);
-      return fitness;
+      const numOfBeautifiers = (<any>entity.options).beautifiers.length;
+      const diffFitness: number = diffCount * 1000;
+      const beautifierFitness: number = Math.max(0, numOfBeautifiers - 1);
+      const optionsFitness: number = Math.max(
+        0,
+        _.keys(entity.options).length - 2
+      );
+      return diffFitness + beautifierFitness + optionsFitness;
+      // const fitness: number =
+      //   diffCount * 1000 +
+      //   Math.max(0, numOfBeautifiers - 1) +
+      //   Math.max(0, _.keys(entity.options).length - 2);
+      // return fitness;
     });
   }
 
   private beautify(entity: Entity) {
+    return this.dataloader.load(entity);
+  }
+
+  private dataloader = new DataLoader<Entity, string>(
+    entities => Promise.all(entities.map(entity => this._beautify(entity))),
+    {
+      cacheKeyFn: stringify,
+    }
+  );
+
+  private _beautify(entity: Entity) {
     const options: LanguageOptionValues = {
       [this.languageName]: entity.options,
     };
-    return Unibeautify.beautify({
+    const data = {
       languageName: this.languageName,
       options,
       text: this.text,
-    });
+    };
+    return this.unibeautify.beautify(data);
   }
 
   private get desiredText(): string {
@@ -199,7 +290,6 @@ class PhraseGenetic extends Genetic.Genetic<Entity, UserData> {
   }
 
   shouldContinue({ population, generation }: Genetic.GeneticState<Entity>) {
-    // console.log("population", generation, population.length, population[0]);
     return population[0].fitness !== 0;
   }
 
@@ -211,26 +301,32 @@ class PhraseGenetic extends Genetic.Genetic<Entity, UserData> {
   }: Genetic.Notification<Entity>) {
     console.log(generation, population[0].fitness, isFinished);
     if (isFinished) {
-      // console.log(
-      //   JSON.stringify({ solution: population[0], generation, stats }, null, 2)
-      // );
       this.beautify(population[0].entity).then(beautifiedText => {
-        console.log(
-          "Solution",
-          generation,
-          stats,
-          this.desiredText,
-          beautifiedText,
-          JSON.stringify(population[0], null, 2)
-        );
+        // console.log(
+        //   "Solution",
+        //   generation,
+        //   stats,
+        //   this.desiredText,
+        //   beautifiedText,
+        //   JSON.stringify(population[0], null, 2)
+        // );
+
+        console.log(`Solution after ${generation} generations:`);
+        console.log(JSON.stringify(population[0], null, 2));
+        console.log(JSON.stringify(stats, null, 2));
+        console.log("-".repeat(20));
+        console.log(this.desiredText);
+        console.log("-".repeat(20));
+        console.log(beautifiedText);
+        console.log("-".repeat(20));
       });
     } else {
     }
   }
 }
 
-const config: Partial<Genetic.Configuration> = {
-  iterations: 100,
+const configuration: Partial<Genetic.Configuration> = {
+  iterations: 200,
   size: 100,
   crossover: 0.3,
   mutation: 0.3,
@@ -243,15 +339,14 @@ const config: Partial<Genetic.Configuration> = {
 };
 
 const userData: UserData = {
-  beautifiers: [
-    "Prettier",
-    "JS-Beautify"
-  ],
+  // beautifiers: ["Prettier", "JS-Beautify"],
+  beautifiers,
   language: "JavaScript",
 
-  originalText: `if(true){console.log({ hello: "world" });}`,
+  // originalText: `if(true){console.log({ hello: "world" });}`,
   // desiredText: `if(true){console.log({ hello: "world" });}`,
-  desiredText: `if (true) {\n  console.log({hello: 'world'})\n}\n`,
+  // desiredText: `if (true) {\n  console.log({hello: 'world'})\n}\n`,
+  // desiredText: `if (true) {\n   console.log({hello: 'world'})\n}\n`,
 
   // originalText: `if(true){console.log("hello world");}`,
   // desiredText: `if (true) {\n  console.log('hello world')\n}\n`,
@@ -260,10 +355,30 @@ const userData: UserData = {
   // originalText: `var obj = { foo: "bar" };`,
   // desiredText: `var obj = {foo: "bar"};\n`,
 
-  // break_chained_methods
-  // originalText: `this.$("#fileName").val().addClass("disabled")\n  .prop("disabled", true)\n`,
-  // desiredText: `this.$("#fileName")\n  .val()\n  .addClass("disabled")\n  .prop("disabled", true)\n`,
+  // comma_first
+  // originalText: `const a = "a", b = "b", c = "c";`,
+  // desiredText: `const a = "a"\n  , b = "b"\n  , c = "c";`,
 
+  // end_with_comma
+  // originalText: `var bar = {bar: "baz", qux: "quux"};`,
+  // desiredText: `var bar = {\n     bar: "baz",\n    qux: "quux",\n};\n`,
+
+  // break_chained_methods
+  // originalText: `this.$("#fileName").val().addClass("disabled")\n  .prop("disabled", true)`,
+  // desiredText: `this.$("#fileName")\n  .val()\n  .addClass("disabled")\n  .prop("disabled", true)\n`,
+  // desiredText: `this.$("#fileName").val().addClass("disabled")\n  .prop("disabled", true)`,
+
+  // arrow_parens
+  // originalText: `a => {};`,
+  // desiredText: `(a) => {};`,
+  // desiredText: `a => {};`,
+
+  // pragma_insert
+  originalText: `console.log("hello world");`,
+  desiredText: `/** @format */\nconsole.log('hello world')\n`,
 };
-const genetic = new PhraseGenetic(config, userData);
+const genetic = new UnibeautifyGenetic({
+  configuration,
+  userData,
+});
 genetic.evolve();
