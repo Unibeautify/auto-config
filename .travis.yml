@@ -5,9 +5,7 @@ cache:
   directories:
   - node_modules # NPM packages
 script:
-  - npm run lint
-  - npm run build
-  - jest --maxWorkers=4
+  - npm test
 notifications:
   email:
     on_success: never
