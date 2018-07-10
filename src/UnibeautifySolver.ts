@@ -63,17 +63,32 @@ export class UnibeautifyGenetic extends Genetic.Genetic<Entity, UserData> {
   }
 
   seed() {
-    const options: Entity["options"] = this.optionKeys.reduce(
+    // const options: Entity["options"] = this.optionKeys.reduce(
+    //   (options: Entity["options"], optionKey: string) => ({
+    //     ...options,
+    //     [optionKey]: this.randomValue(this.optionsRegistry[optionKey]),
+    //   }),
+    //   {
+    //     // beautifiers: _.shuffle(this.supportedBeautifierNames),
+    //     beautifiers: _.sampleSize(
+    //       this.supportedBeautifierNames,
+    //       _.random(1, this.supportedBeautifierNames.length)
+    //     ),
+    //   } as any
+    // );
+    const beautifiers = _.sampleSize(
+      this.supportedBeautifierNames,
+      _.random(1, this.supportedBeautifierNames.length)
+    );
+    const options: Entity["options"] = this.optionKeysForBeautifiers(
+      beautifiers
+    ).reduce(
       (options: Entity["options"], optionKey: string) => ({
         ...options,
         [optionKey]: this.randomValue(this.optionsRegistry[optionKey]),
       }),
       {
-        // beautifiers: _.shuffle(this.supportedBeautifierNames),
-        beautifiers: _.sampleSize(
-          this.supportedBeautifierNames,
-          _.random(1, this.supportedBeautifierNames.length)
-        ),
+        beautifiers,
       } as any
     );
     return this.cleanEntity({
@@ -144,7 +159,7 @@ export class UnibeautifyGenetic extends Genetic.Genetic<Entity, UserData> {
 
     switch (chosenOperation) {
       case 0: {
-        // Remove
+        // Remove Beautifier
         if (hasMultipleBeautifiers) {
           const removeBeautifier = this.randomItemFromArray(enabledBeautifiers);
           return this.cleanEntity({
@@ -157,7 +172,7 @@ export class UnibeautifyGenetic extends Genetic.Genetic<Entity, UserData> {
         }
       }
       case 1: {
-        // Add
+        // Add Beautifier
         const missingBeautifiers: string[] = _.difference(
           enabledBeautifiers,
           this.supportedBeautifierNames
@@ -174,7 +189,7 @@ export class UnibeautifyGenetic extends Genetic.Genetic<Entity, UserData> {
         }
       }
       case 2: {
-        // Shuffle
+        // Shuffle Beautifier
         return this.cleanEntity({
           ...entity,
           options: {
@@ -183,9 +198,28 @@ export class UnibeautifyGenetic extends Genetic.Genetic<Entity, UserData> {
           } as any,
         });
       }
+      case 3: {
+        // Remove Enabled Option
+        const originalOptions = entity.options;
+        const enabledOptions = _.omitBy(
+          { ...originalOptions, beautifiers: undefined },
+          value => value == undefined
+        );
+        const enabledOptionNames = Object.keys(enabledOptions);
+        if (enabledOptionNames.length > 0) {
+          const removeOptionName = this.randomItemFromArray(enabledOptionNames);
+          return this.cleanEntity({
+            ...entity,
+            options: {
+              ...entity.options,
+              [removeOptionName]: undefined,
+            } as any,
+          });
+        }
+      }
     }
 
-    const optionKey = this.randomOptionKey();
+    const optionKey = this.randomOptionKeyForBeautifiers(enabledBeautifiers);
     const option = this.optionsRegistry[optionKey];
     return this.cleanEntity({
       ...entity,
@@ -196,12 +230,28 @@ export class UnibeautifyGenetic extends Genetic.Genetic<Entity, UserData> {
     });
   }
 
-  private randomOptionKey(): string {
-    const optionKeys = this.optionKeys;
-    return this.randomItemFromArray(optionKeys);
+  private randomOptionKeyForBeautifiers(
+    beautifierNames: string[]
+  ): BeautifierOptionName {
+    return this.randomItemFromArray(
+      this.optionKeysForBeautifiers(beautifierNames)
+    );
   }
 
-  private randomItemFromArray(arr: string[]): string {
+  private optionKeysForBeautifiers(
+    beautifierNames: string[]
+  ): BeautifierOptionName[] {
+    return this.optionKeys.filter(optionName =>
+      this.doesSupportOption(optionName, beautifierNames)
+    );
+  }
+
+  // private randomOptionKey(): string {
+  //   const optionKeys = this.optionKeys;
+  //   return this.randomItemFromArray(optionKeys);
+  // }
+
+  private randomItemFromArray<T>(arr: T[]): T {
     const index = Math.floor(Math.random() * arr.length);
     return arr[index];
   }
@@ -278,8 +328,8 @@ export class UnibeautifyGenetic extends Genetic.Genetic<Entity, UserData> {
     return [son, daughter];
   }
 
-  private get optionKeys(): string[] {
-    return Object.keys(this.optionsRegistry).sort();
+  private get optionKeys(): BeautifierOptionName[] {
+    return Object.keys(this.optionsRegistry).sort() as any[];
   }
 
   private get optionsRegistry(): OptionsRegistry {

@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`evolve arrow_parens: beautifiedText 1`] = `"(a) => {};"`;
+exports[`evolve arrow_parens: beautifiedText 1`] = `(a) => {};`;
 
 exports[`evolve arrow_parens: entity 1`] = `
 Object {
@@ -16,7 +16,7 @@ Object {
 
 exports[`evolve arrow_parens: fitness 1`] = `1000`;
 
-exports[`evolve break_chained_methods=false: beautifiedText 1`] = `"foo.bar().baz();"`;
+exports[`evolve break_chained_methods=false: beautifiedText 1`] = `foo.bar().baz();`;
 
 exports[`evolve break_chained_methods=false: entity 1`] = `
 Object {
@@ -24,7 +24,7 @@ Object {
     "beautifiers": Array [
       "JS-Beautify",
     ],
-    "wrap_line_length": 80,
+    "wrap_line_length": 160,
   },
 }
 `;
@@ -32,8 +32,8 @@ Object {
 exports[`evolve break_chained_methods=false: fitness 1`] = `0`;
 
 exports[`evolve break_chained_methods=true: beautifiedText 1`] = `
-"foo.bar()
-  .baz();"
+foo.bar()
+  .baz();
 `;
 
 exports[`evolve break_chained_methods=true: entity 1`] = `
@@ -51,11 +51,11 @@ Object {
 exports[`evolve break_chained_methods=true: fitness 1`] = `1`;
 
 exports[`evolve break_chained_methods1: beautifiedText 1`] = `
-"this.$(\\"#fileName\\")
+this.$("#fileName")
   .val()
-  .addClass(\\"disabled\\")
-  .prop(\\"disabled\\", true)
-"
+  .addClass("disabled")
+  .prop("disabled", true)
+
 `;
 
 exports[`evolve break_chained_methods1: entity 1`] = `
@@ -72,8 +72,8 @@ Object {
 exports[`evolve break_chained_methods1: fitness 1`] = `0`;
 
 exports[`evolve break_chained_methods2: beautifiedText 1`] = `
-"this.$(\\"#fileName\\").val().addClass(\\"disabled\\")
-  .prop(\\"disabled\\", true)"
+this.$("#fileName").val().addClass("disabled")
+  .prop("disabled", true)
 `;
 
 exports[`evolve break_chained_methods2: entity 1`] = `
@@ -90,9 +90,9 @@ Object {
 exports[`evolve break_chained_methods2: fitness 1`] = `0`;
 
 exports[`evolve comma_first: beautifiedText 1`] = `
-"const a = \\"a\\"
-  , b = \\"b\\"
-  , c = \\"c\\";"
+const a = "a"
+  , b = "b"
+  , c = "c";
 `;
 
 exports[`evolve comma_first: entity 1`] = `
@@ -110,11 +110,11 @@ Object {
 exports[`evolve comma_first: fitness 1`] = `1`;
 
 exports[`evolve end_with_comma: beautifiedText 1`] = `
-"var bar = {
-    bar: \\"baz\\",
-    qux: \\"quux\\",
+var bar = {
+    bar: "baz",
+    qux: "quux"
 };
-"
+
 `;
 
 exports[`evolve end_with_comma: entity 1`] = `
@@ -122,21 +122,44 @@ Object {
   "options": Object {
     "beautifiers": Array [
       "JS-Beautify",
-      "Prettier",
     ],
-    "end_with_comma": true,
-    "indent_size": 4,
+    "end_with_newline": true,
   },
 }
 `;
 
-exports[`evolve end_with_comma: fitness 1`] = `11001`;
+exports[`evolve end_with_comma: fitness 1`] = `10000`;
+
+exports[`evolve end_with_comma2: beautifiedText 1`] = `
+var bar = {
+  bar: "baz",
+  qux: "quux",
+};
+var foo = {
+  bar: "baz",
+  qux: "quux",
+};
+`;
+
+exports[`evolve end_with_comma2: entity 1`] = `
+Object {
+  "options": Object {
+    "beautifiers": Array [
+      "JS-Beautify",
+    ],
+    "end_with_comma": true,
+    "indent_size": 2,
+  },
+}
+`;
+
+exports[`evolve end_with_comma2: fitness 1`] = `20001`;
 
 exports[`evolve indent_size + quotes + object_curly_spacing: beautifiedText 1`] = `
-"if (true) {
+if (true) {
   console.log({hello: 'world'})
 }
-"
+
 `;
 
 exports[`evolve indent_size + quotes + object_curly_spacing: entity 1`] = `
@@ -152,11 +175,11 @@ Object {
 }
 `;
 
-exports[`evolve indent_size + quotes + object_curly_spacing: fitness 1`] = `10002`;
+exports[`evolve indent_size + quotes + object_curly_spacing: fitness 1`] = `2`;
 
 exports[`evolve object_curly_spacing: beautifiedText 1`] = `
-"var obj = {foo: \\"bar\\"};
-"
+var obj = {foo: "bar"};
+
 `;
 
 exports[`evolve object_curly_spacing: entity 1`] = `
@@ -173,10 +196,10 @@ Object {
 exports[`evolve object_curly_spacing: fitness 1`] = `0`;
 
 exports[`evolve pragma_insert: beautifiedText 1`] = `
-"/** @format */
+/** @format */
 
 console.log('hello world')
-"
+
 `;
 
 exports[`evolve pragma_insert: entity 1`] = `
@@ -195,10 +218,10 @@ Object {
 exports[`evolve pragma_insert: fitness 1`] = `2`;
 
 exports[`evolve quotes + object_curly_spacing: beautifiedText 1`] = `
-"if (true) {
+if (true) {
   console.log({hello: 'world'})
 }
-"
+
 `;
 
 exports[`evolve quotes + object_curly_spacing: entity 1`] = `
@@ -210,38 +233,34 @@ Object {
     "end_with_semicolon": false,
     "object_curly_spacing": false,
     "quotes": "single",
-    "wrap_line_length": 160,
   },
 }
 `;
 
-exports[`evolve quotes + object_curly_spacing: fitness 1`] = `3`;
+exports[`evolve quotes + object_curly_spacing: fitness 1`] = `2`;
 
 exports[`evolve quotes: beautifiedText 1`] = `
-"if (true) {
+if (true) {
   console.log('hello world')
 }
-"
+
 `;
 
 exports[`evolve quotes: entity 1`] = `
 Object {
   "options": Object {
-    "arrow_parens": "as-needed",
     "beautifiers": Array [
       "Prettier",
     ],
-    "end_with_comma": false,
     "end_with_semicolon": false,
     "quotes": "single",
-    "wrap_line_length": 160,
   },
 }
 `;
 
-exports[`evolve quotes: fitness 1`] = `4`;
+exports[`evolve quotes: fitness 1`] = `1`;
 
-exports[`evolve test1: beautifiedText 1`] = `"if(true){console.log({ hello: \\"world\\" });}"`;
+exports[`evolve test1: beautifiedText 1`] = `if(true){console.log({ hello: "world" });}`;
 
 exports[`evolve test1: entity 1`] = `
 Object {

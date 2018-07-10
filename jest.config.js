@@ -3,8 +3,8 @@
 module.exports = {
   rootDir: ".",
   testEnvironment: "node",
-  setupFiles: [
-  ],
+  setupFiles: ['<rootDir>/test/setup-files.ts'],
+  snapshotSerializers: ['<rootDir>/test/raw-serializer.ts'],
   transform: {
     "^.+\\.tsx?$": "ts-jest"
   },
