@@ -1,0 +1,17 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`arrow_parens: beautifiedText 1`] = `(a) => {};`;
+
+exports[`arrow_parens: entity 1`] = `
+Object {
+  "options": Object {
+    "arrow_parens": "always",
+    "beautifiers": Array [
+      "Prettier",
+      "JS-Beautify",
+    ],
+  },
+}
+`;
+
+exports[`arrow_parens: fitness 1`] = `1000`;

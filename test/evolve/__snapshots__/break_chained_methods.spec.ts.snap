@@ -1,0 +1,20 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`break_chained_methods break_chained_methods=true: beautifiedText 1`] = `
+foo.bar()
+  .baz();
+`;
+
+exports[`break_chained_methods break_chained_methods=true: entity 1`] = `
+Object {
+  "options": Object {
+    "beautifiers": Array [
+      "JS-Beautify",
+    ],
+    "break_chained_methods": true,
+    "indent_size": 2,
+  },
+}
+`;
+
+exports[`break_chained_methods break_chained_methods=true: fitness 1`] = `1`;
