@@ -1,0 +1,21 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`comma_first: beautifiedText 1`] = `
+const a = "a"
+  , b = "b"
+  , c = "c";
+`;
+
+exports[`comma_first: entity 1`] = `
+Object {
+  "options": Object {
+    "beautifiers": Array [
+      "JS-Beautify",
+    ],
+    "comma_first": true,
+    "indent_size": 2,
+  },
+}
+`;
+
+exports[`comma_first: fitness 1`] = `1`;

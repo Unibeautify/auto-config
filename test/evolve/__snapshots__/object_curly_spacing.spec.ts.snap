@@ -1,0 +1,19 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`object_curly_spacing: beautifiedText 1`] = `
+var obj = {foo: "bar"};
+
+`;
+
+exports[`object_curly_spacing: entity 1`] = `
+Object {
+  "options": Object {
+    "beautifiers": Array [
+      "Prettier",
+    ],
+    "object_curly_spacing": false,
+  },
+}
+`;
+
+exports[`object_curly_spacing: fitness 1`] = `0`;

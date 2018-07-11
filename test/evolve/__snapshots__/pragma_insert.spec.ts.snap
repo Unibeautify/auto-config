@@ -1,0 +1,23 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`pragma_insert: beautifiedText 1`] = `
+/** @format */
+
+console.log('hello world')
+
+`;
+
+exports[`pragma_insert: entity 1`] = `
+Object {
+  "options": Object {
+    "beautifiers": Array [
+      "Prettier",
+    ],
+    "end_with_semicolon": false,
+    "pragma_insert": true,
+    "quotes": "single",
+  },
+}
+`;
+
+exports[`pragma_insert: fitness 1`] = `3`;

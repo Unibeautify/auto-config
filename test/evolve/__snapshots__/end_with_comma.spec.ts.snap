@@ -1,0 +1,20 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`end_with_comma: beautifiedText 1`] = `
+var bar = {
+    bar: "baz",
+    qux: "quux"
+};
+`;
+
+exports[`end_with_comma: entity 1`] = `
+Object {
+  "options": Object {
+    "beautifiers": Array [
+      "JS-Beautify",
+    ],
+  },
+}
+`;
+
+exports[`end_with_comma: fitness 1`] = `10000`;
