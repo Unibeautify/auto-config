@@ -134,7 +134,9 @@ export class UnibeautifyGenetic extends Genetic.Genetic<Entity, UserData> {
     ).reduce(
       (options: Entity["options"], optionKey: string) => ({
         ...options,
-        [optionKey]: this.randomValue(this.optionsRegistry[optionKey]),
+        [optionKey]: this.randomValueIncludingUndefined(
+          this.optionsRegistry[optionKey]
+        ),
       }),
       {
         beautifiers,
@@ -197,12 +199,10 @@ export class UnibeautifyGenetic extends Genetic.Genetic<Entity, UserData> {
     const enabledBeautifiers = (<any>entity.options).beautifiers;
     const hasMultipleBeautifiers = enabledBeautifiers.length > 1;
 
-    const extraOperations = 3;
-    const chosenOperation = Math.floor(
-      Math.random() * (this.optionKeys.length + extraOperations)
-    );
+    const numOfMutations = 6;
+    const chosenMutation = Math.floor(Math.random() * numOfMutations);
 
-    switch (chosenOperation) {
+    switch (chosenMutation) {
       case 0: {
         // Remove Beautifier
         if (hasMultipleBeautifiers) {
@@ -234,7 +234,7 @@ export class UnibeautifyGenetic extends Genetic.Genetic<Entity, UserData> {
         }
       }
       case 2: {
-        // Shuffle Beautifier
+        // Shuffle Beautifiers
         return this.cleanEntity({
           ...entity,
           options: {
@@ -262,26 +262,87 @@ export class UnibeautifyGenetic extends Genetic.Genetic<Entity, UserData> {
           });
         }
       }
+      case 4: {
+        // Add Disabled Option
+        return this.addDisabledOption(entity);
+      }
+      case 5:
+      default: {
+        // Change Enabled Option
+        return this.changeEnabledOption(entity);
+      }
     }
+  }
 
-    const optionKey = this.randomOptionKeyForBeautifiers(enabledBeautifiers);
+  private addDisabledOption(entity: Entity): Entity {
+    const originalOptions = entity.options;
+    const enabledOptions = _.omitBy(
+      { ...originalOptions, beautifiers: undefined },
+      value => value == undefined
+    );
+    const enabledOptionNames = Object.keys(enabledOptions);
+    const disabledOptionNames = _.difference(
+      this.optionKeys,
+      enabledOptionNames
+    );
+    if (disabledOptionNames.length > 0) {
+      const addOptionName = this.randomItemFromArray(disabledOptionNames);
+      const option = this.optionsRegistry[addOptionName];
+      return this.cleanEntity({
+        ...entity,
+        options: {
+          ...entity.options,
+          [addOptionName]: this.randomValue(option),
+        } as any,
+      });
+    }
+    return this.changeEnabledOption(entity);
+  }
+
+  private changeEnabledOption(entity: Entity) {
+    const originalOptions = entity.options;
+    const enabledOptions: OptionValues = _.omitBy(
+      { ...originalOptions, beautifiers: undefined },
+      value => value == undefined
+    );
+    const enabledOptionNames: Array<BeautifierOptionName> = Object.keys(
+      enabledOptions
+    ) as any[];
+    const hasNoEnabledOptions = enabledOptionNames.length === 0;
+    if (hasNoEnabledOptions) {
+      return this.addDisabledOption(entity);
+    }
+    const optionKey: keyof OptionValues = this.randomItemFromArray(
+      enabledOptionNames
+    );
     const option = this.optionsRegistry[optionKey];
+    if (!option) {
+      throw new Error(
+        `Option for key not found: ${optionKey}\n ${JSON.stringify(
+          enabledOptionNames
+        )}`
+      );
+    }
+    const currValue: any = originalOptions[optionKey];
+    const allValues = this.exampleValues(option);
+    const values = _.without(allValues, currValue);
+    const newValue = this.randomItemFromArray(values);
     return this.cleanEntity({
       ...entity,
       options: {
         ...entity.options,
-        [optionKey]: this.randomValue(option),
+        [optionKey]: newValue,
       },
     });
   }
 
-  private randomOptionKeyForBeautifiers(
-    beautifierNames: string[]
-  ): BeautifierOptionName {
-    return this.randomItemFromArray(
-      this.optionKeysForBeautifiers(beautifierNames)
-    );
-  }
+  // private randomOptionKeyForBeautifiers(
+  //   beautifierNames: string[]
+  // ): BeautifierOptionName {
+  //   return this.randomItemFromArray(
+  //     this.optionKeysForBeautifiers(beautifierNames)
+  //   );
+  // }
 
   private optionKeysForBeautifiers(
     beautifierNames: string[]
@@ -292,11 +353,21 @@ export class UnibeautifyGenetic extends Genetic.Genetic<Entity, UserData> {
   }
 
   private randomItemFromArray<T>(arr: T[]): T {
+    if (arr.length === 0) {
+      throw new Error(
+        "randomItemFromArray expects an array with 1 or more items."
+      );
+    }
     const index = Math.floor(Math.random() * arr.length);
     return arr[index];
   }
 
   private randomValue(option: Option): any {
+    const values = this.exampleValues(option);
+    return this.randomItemFromArray(values);
+  }
+
+  private randomValueIncludingUndefined(option: Option): any {
     const values = this.exampleValues(option);
     const valuesWithUndefined = [...values, undefined];
     return this.randomItemFromArray(valuesWithUndefined);
@@ -385,9 +456,10 @@ export class UnibeautifyGenetic extends Genetic.Genetic<Entity, UserData> {
       }
       const beautifierFitness: number =
         Math.max(0, numOfBeautifiers - 1) * 1000;
+      const ignoreOptionKeys = ["beautifiers", "indent_size", "indent_style"];
       const optionsFitness: number = Math.max(
         0,
-        _.keys(entity.options).length - 2
+        _.without(_.keys(entity.options), ...ignoreOptionKeys).length
       );
       return beautifierFitness + optionsFitness;
     });
@@ -418,11 +490,7 @@ export class UnibeautifyGenetic extends Genetic.Genetic<Entity, UserData> {
     return this.userData.originalText;
   }
 
-  public shouldContinue({
-    population,
-    generation,
-    stats,
-  }: Genetic.GeneticState<Entity>) {
+  public shouldContinue({ population }: Genetic.GeneticState<Entity>) {
     const bestFitness = population[0].fitness;
     const isPerfect = bestFitness === 0;
     if (isPerfect) {
@@ -433,7 +501,8 @@ export class UnibeautifyGenetic extends Genetic.Genetic<Entity, UserData> {
       const bestEntities = population.filter(
         entity => entity.fitness === bestFitness
       );
-      if (bestEntities.length > 10) {
+      const threshold = this.configuration.size * 0.5;
+      if (bestEntities.length > threshold) {
         const entityJson = stringify(population[0].entity);
         const bestAreSame = bestEntities.every(
           ({ entity }) => stringify(entity) === entityJson

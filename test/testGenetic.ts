@@ -6,8 +6,8 @@ import { UnibeautifyGenetic, UserData, Entity } from "../src/index";
 export function testGenetic(title: string, userData: UserData, skip?: true) {
   const configuration: Partial<Genetic.Configuration> = {
     fittestAlwaysSurvives: true,
-    iterations: 500,
-    size: 20,
+    iterations: 100,
+    size: 50,
     crossover: 0.8,
     mutation: 0.5,
     skip: 100,

@@ -11,7 +11,7 @@ const beautifiers: Beautifier[] = [
 ];
 const configuration: Partial<Genetic.Configuration> = {
   iterations: 500,
-  size: 20,
+  size: 50,
   crossover: 0.8,
   mutation: 0.5,
   skip: 10,

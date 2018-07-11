@@ -1,0 +1,59 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`indent_size=2: beautifiedText 1`] = `
+if (true) {
+  helloWorld();
+}
+`;
+
+exports[`indent_size=2: entity 1`] = `
+Object {
+  "options": Object {
+    "beautifiers": Array [
+      "JS-Beautify",
+    ],
+    "indent_size": 2,
+  },
+}
+`;
+
+exports[`indent_size=2: fitness 1`] = `0`;
+
+exports[`indent_size=3: beautifiedText 1`] = `
+if (true) {
+    helloWorld();
+}
+`;
+
+exports[`indent_size=3: entity 1`] = `
+Object {
+  "options": Object {
+    "beautifiers": Array [
+      "Prettier",
+      "JS-Beautify",
+    ],
+    "indent_size": 4,
+  },
+}
+`;
+
+exports[`indent_size=3: fitness 1`] = `10000`;
+
+exports[`indent_size=4: beautifiedText 1`] = `
+if (true) {
+    helloWorld();
+}
+`;
+
+exports[`indent_size=4: entity 1`] = `
+Object {
+  "options": Object {
+    "beautifiers": Array [
+      "JS-Beautify",
+    ],
+    "break_chained_methods": true,
+  },
+}
+`;
+
+exports[`indent_size=4: fitness 1`] = `0`;
