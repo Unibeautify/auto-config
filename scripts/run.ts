@@ -1,15 +1,18 @@
 import * as Genetic from "@glavin001/genetic-js";
 import { Beautifier } from "unibeautify";
 import prettier from "@unibeautify/beautifier-prettier";
-import jsBeautify from "@unibeautify/beautifier-js-beautify";
+// import jsBeautify from "@unibeautify/beautifier-js-beautify";
 
 import { UnibeautifyGenetic, UserData, Entity } from "../src/index";
 
-const beautifiers: Beautifier[] = [prettier, jsBeautify];
+const beautifiers: Beautifier[] = [
+  prettier,
+  // jsBeautify,
+];
 const configuration: Partial<Genetic.Configuration> = {
-  iterations: 200,
-  size: 100,
-  crossover: 0.5,
+  iterations: 500,
+  size: 20,
+  crossover: 0.8,
   mutation: 0.5,
   skip: 10,
 };
@@ -18,6 +21,8 @@ const userData: UserData = {
   language: "JavaScript",
   originalText: `console.log("hello world");`,
   desiredText: `/** @format */\n\nconsole.log('hello world')\n`,
+  // originalText: `var bar = {bar: "baz", qux: "quux"};\nvar foo = {bar: "baz", qux: "quux"};`,
+  // desiredText: `var bar = {\n  bar: "baz",\n  qux: "quux",\n};\nvar foo = {\n  bar: "baz",\n  qux: "quux",\n};\n`,
 };
 const genetic = new UnibeautifyGenetic({
   configuration,
@@ -42,9 +47,11 @@ genetic.notification = function({
       console.log(`${"-".repeat(10)} Beautified Text ${"-".repeat(10)}`);
       console.log(beautifiedText);
       console.log("-".repeat(20));
-    //   population.slice(0, 10).forEach(entity => {
-    //     console.log(JSON.stringify(entity, null, 2));
-    //   });
+    });
+  } else {
+    population.slice(0, 5).forEach((entity, index) => {
+      console.log(`${"-".repeat(10)} Config ${index + 1} ${"-".repeat(10)}`);
+      console.log(JSON.stringify(entity, null, 2));
     });
   }
 };

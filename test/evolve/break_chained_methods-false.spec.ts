@@ -6,4 +6,4 @@ testGenetic("break_chained_methods=false", {
   language: "JavaScript",
   originalText: `foo.bar().baz();`,
   desiredText: `foo.bar().baz();`,
-});
+}, true);

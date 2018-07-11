@@ -1,0 +1,39 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`beautifier-order: beautifiedText 1`] = `
+/** @format */
+
+const fun1 = function ( arg1 ) {}
+const fun2 = function ( arg1 ) {}
+
+var foo = {
+    bar: "baz"
+    , qux: "quux"
+, }
+
+var bar = {
+    bar: "baz"
+    , qux: "quux"
+, }
+
+`;
+
+exports[`beautifier-order: entity 1`] = `
+Object {
+  "options": Object {
+    "beautifiers": Array [
+      "Prettier",
+      "JS-Beautify",
+    ],
+    "comma_first": true,
+    "end_with_comma": true,
+    "end_with_newline": true,
+    "end_with_semicolon": false,
+    "pragma_insert": true,
+    "space_after_anon_function": true,
+    "space_in_paren": true,
+  },
+}
+`;
+
+exports[`beautifier-order: fitness 1`] = `1006`;

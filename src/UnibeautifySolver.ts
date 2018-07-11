@@ -15,14 +15,13 @@ import * as fastLevenshtein from "fast-levenshtein";
 import * as DataLoader from "dataloader";
 import * as stringify from "json-stable-stringify";
 
-// import beautifiers from "./beautifiers";
+import { Select1, Select2 } from "./Selection";
 
 export interface Entity {
   options: OptionValues;
 }
 
 export interface UserData {
-  // beautifiers: string[];
   beautifiers: Beautifier[];
   language: string;
   originalText: string;
@@ -32,50 +31,100 @@ export interface UserData {
 export class UnibeautifyGenetic extends Genetic.Genetic<Entity, UserData> {
   optimize = Genetic.Optimize.Minimize;
   // select1 = Genetic.Select1.Fittest;
+  // select1 = Genetic.Select1.Tournament3;
   // select2 = Genetic.Select2.FittestRandom;
-  select1 = Genetic.Select1.Tournament3;
-  select2 = Genetic.Select2.Tournament3;
+  // select2 = Genetic.Select2.Tournament3;
+  // select1 = Select1.Tournament3;
+  select1 = Select1.RandomLinearRank;
+  // select2 = Select2.DistinctPair;
+  // select2 = Select2.RandomFittestAndTournament3;
+  select2 = Select2.DifferentPair;
 
   private readonly unibeautify: Unibeautify;
-  // private readonly beautifiers: Beautifier[];
+  private readonly language: Language;
+  private readonly dataloaderCacheMap: Map<Entity, Promise<string>>;
+  private readonly dataloader: DataLoader<Entity, string>;
 
   constructor({
-    // beautifiers,
     configuration,
     userData,
   }: {
-    // beautifiers: Beautifier[];
     configuration: Partial<Genetic.Configuration>;
     userData: UserData;
   }) {
     super(configuration, userData);
-    // this.beautifiers = beautifiers;
     this.unibeautify = newUnibeautify();
     this.initializeUnibeautify();
+    this.language = this.getLanguage();
+    this.dataloaderCacheMap = new Map();
+    this.dataloader = new DataLoader<Entity, string>(
+      entities =>
+        Promise.all(entities.map(entity => this.internalBeautify(entity))),
+      {
+        cacheMap: this.dataloaderCacheMap,
+        cacheKeyFn: stringify,
+      }
+    );
   }
 
   private initializeUnibeautify() {
     this.unibeautify.loadBeautifiers(this.beautifiers);
   }
 
+  private getLanguage(): Language {
+    return this.unibeautify.findLanguages({
+      name: this.languageName,
+    })[0];
+  }
+
+  // private get language(): Language {
+  //   return this.unibeautify.findLanguages({
+  //     name: this.languageName,
+  //   })[0];
+  // }
+
   private get beautifiers(): Beautifier[] {
     return this.userData.beautifiers;
   }
 
-  seed() {
-    // const options: Entity["options"] = this.optionKeys.reduce(
-    //   (options: Entity["options"], optionKey: string) => ({
-    //     ...options,
-    //     [optionKey]: this.randomValue(this.optionsRegistry[optionKey]),
-    //   }),
-    //   {
-    //     // beautifiers: _.shuffle(this.supportedBeautifierNames),
-    //     beautifiers: _.sampleSize(
-    //       this.supportedBeautifierNames,
-    //       _.random(1, this.supportedBeautifierNames.length)
-    //     ),
-    //   } as any
-    // );
+  public seed(): Entity {
+    return this.createUniqueEntity(() => this.createEntity());
+    // let entity = this.createEntity();
+    // while (this.alreadyEntity(entity)) {
+    //   entity = this.createEntity();
+    // }
+    // return entity;
+  }
+
+  private createUniqueEntity(createFn: () => Entity): Entity {
+    return createFn();
+    // let entity = createFn();
+    // let count = 0;
+    // const max = 10;
+    // while (this.alreadyEntity(entity) && count <= max) {
+    //   entity = createFn();
+    //   count++;
+    // }
+    // return entity;
+  }
+
+  // private alreadyEntity(entity: Entity): boolean {
+  //   const entityJson = stringify(entity);
+  //   const entities: Entity[] = (<any>this).entities;
+  //   const entityInPopulation =
+  //     _.findIndex(entities, curr => stringify(curr) === entityJson) !== -1;
+  //   if (entityInPopulation) {
+  //     return true;
+  //   }
+  //   // const entityInHistory =
+  //   //   Object.keys(this.dataloaderCacheMap).indexOf(entityJson) !== -1;
+  //   // if (entityInHistory) {
+  //   //   return true;
+  //   // }
+  //   return false;
+  // }
+
+  private createEntity() {
     const beautifiers = _.sampleSize(
       this.supportedBeautifierNames,
       _.random(1, this.supportedBeautifierNames.length)
@@ -97,13 +146,6 @@ export class UnibeautifyGenetic extends Genetic.Genetic<Entity, UserData> {
   }
 
   private cleanEntity(entity: Entity): Entity {
-    return this.cleanEntity2(entity);
-    // return entity;
-  }
-
-  private cleanEntity2(entity: Entity): Entity {
-    // this.doesSupportOption;
-    // return entity;
     const { options } = entity;
     const { beautifiers } = options as any;
     const cleanOptions: OptionValues = _.mapValues(
@@ -128,7 +170,6 @@ export class UnibeautifyGenetic extends Genetic.Genetic<Entity, UserData> {
     optionName: BeautifierOptionName,
     beautifierNames: string[]
   ): boolean {
-    // return true;
     if (beautifierNames.length === this.supportedBeautifierNames.length) {
       return true;
     }
@@ -148,7 +189,11 @@ export class UnibeautifyGenetic extends Genetic.Genetic<Entity, UserData> {
     return this.userData.beautifiers.map(beautifier => beautifier.name);
   }
 
-  mutate(entity: Entity) {
+  public mutate(entity: Entity) {
+    return this.createUniqueEntity(() => this.internalMutate(entity));
+  }
+
+  private internalMutate(entity: Entity) {
     const enabledBeautifiers = (<any>entity.options).beautifiers;
     const hasMultipleBeautifiers = enabledBeautifiers.length > 1;
 
@@ -246,11 +291,6 @@ export class UnibeautifyGenetic extends Genetic.Genetic<Entity, UserData> {
     );
   }
 
-  // private randomOptionKey(): string {
-  //   const optionKeys = this.optionKeys;
-  //   return this.randomItemFromArray(optionKeys);
-  // }
-
   private randomItemFromArray<T>(arr: T[]): T {
     const index = Math.floor(Math.random() * arr.length);
     return arr[index];
@@ -259,12 +299,7 @@ export class UnibeautifyGenetic extends Genetic.Genetic<Entity, UserData> {
   private randomValue(option: Option): any {
     const values = this.exampleValues(option);
     const valuesWithUndefined = [...values, undefined];
-    // if (Math.random() < 0.1) {
-    //   return undefined;
-    // }
     return this.randomItemFromArray(valuesWithUndefined);
-    // const valueIndex = Math.floor(Math.random() * valuesWithUndefined.length);
-    // return valuesWithUndefined[valueIndex];
   }
 
   private exampleValues(option: Option): any[] {
@@ -287,7 +322,7 @@ export class UnibeautifyGenetic extends Genetic.Genetic<Entity, UserData> {
     }
   }
 
-  crossover(mother: Entity, father: Entity): [Entity, Entity] {
+  public crossover(mother: Entity, father: Entity): [Entity, Entity] {
     // two-point crossover
     const optionKeys = this.optionKeys;
     const len = optionKeys.length;
@@ -336,53 +371,34 @@ export class UnibeautifyGenetic extends Genetic.Genetic<Entity, UserData> {
     return this.unibeautify.getOptionsSupportedForLanguage(this.language);
   }
 
-  // private language: Language = this.getLanguage();
-  // private getLanguage(): Language {
-  private get language(): Language {
-    return this.unibeautify.findLanguages({
-      name: this.languageName,
-    })[0];
-  }
-
   private get languageName(): string {
     return this.userData.language;
   }
 
-  fitness(entity: Entity): Promise<number> {
-    // console.log("fitness", entity);
+  public fitness(entity: Entity): Promise<number> {
     return this.beautify(entity).then((beautifiedText: string) => {
-      // console.log("beautifiedText", beautifiedText);
       const diffCount = fastLevenshtein.get(this.desiredText, beautifiedText);
       const numOfBeautifiers = (<any>entity.options).beautifiers.length;
       const diffFitness: number = diffCount * 10000;
+      if (diffCount !== 0) {
+        return diffFitness;
+      }
       const beautifierFitness: number =
         Math.max(0, numOfBeautifiers - 1) * 1000;
       const optionsFitness: number = Math.max(
         0,
         _.keys(entity.options).length - 2
       );
-      return diffFitness + beautifierFitness + optionsFitness;
-      // const fitness: number =
-      //   diffCount * 1000 +
-      //   Math.max(0, numOfBeautifiers - 1) +
-      //   Math.max(0, _.keys(entity.options).length - 2);
-      // return fitness;
+      return beautifierFitness + optionsFitness;
     });
   }
 
   private beautify(entity: Entity) {
-    const cleanEntity = this.cleanEntity2(entity);
+    const cleanEntity = this.cleanEntity(entity);
     return this.dataloader.load(cleanEntity);
   }
 
-  private dataloader = new DataLoader<Entity, string>(
-    entities => Promise.all(entities.map(entity => this._beautify(entity))),
-    {
-      cacheKeyFn: stringify,
-    }
-  );
-
-  private _beautify(entity: Entity) {
+  private internalBeautify(entity: Entity) {
     const options: LanguageOptionValues = {
       [this.languageName]: entity.options,
     };
@@ -402,7 +418,7 @@ export class UnibeautifyGenetic extends Genetic.Genetic<Entity, UserData> {
     return this.userData.originalText;
   }
 
-  shouldContinue({
+  public shouldContinue({
     population,
     generation,
     stats,
@@ -412,20 +428,12 @@ export class UnibeautifyGenetic extends Genetic.Genetic<Entity, UserData> {
     if (isPerfect) {
       return false;
     }
-    // const allowedBeautifiers = 2;
     const textIsTheSame = Math.floor(bestFitness / 10000) === 0;
-    // const numOfBeautifiers = Math.floor(bestFitness / 1000);
-    // if (textIsTheSame && numOfBeautifiers <= allowedBeautifiers) {
-    //   return false;
-    // }
     if (textIsTheSame) {
       const bestEntities = population.filter(
         entity => entity.fitness === bestFitness
       );
       if (bestEntities.length > 10) {
-        // if (bestEntities.length > 50) {
-        //   return false;
-        // }
         const entityJson = stringify(population[0].entity);
         const bestAreSame = bestEntities.every(
           ({ entity }) => stringify(entity) === entityJson
@@ -447,15 +455,6 @@ export class UnibeautifyGenetic extends Genetic.Genetic<Entity, UserData> {
     console.log(generation, population[0].fitness, isFinished);
     if (isFinished) {
       this.beautify(population[0].entity).then(beautifiedText => {
-        // console.log(
-        //   "Solution",
-        //   generation,
-        //   stats,
-        //   this.desiredText,
-        //   beautifiedText,
-        //   JSON.stringify(population[0], null, 2)
-        // );
-
         console.log(`Solution after ${generation} generations:`);
         console.log(JSON.stringify(population[0], null, 2));
         console.log(JSON.stringify(stats, null, 2));
@@ -468,61 +467,3 @@ export class UnibeautifyGenetic extends Genetic.Genetic<Entity, UserData> {
     }
   }
 }
-
-// const configuration: Partial<Genetic.Configuration> = {
-//   iterations: 200,
-//   size: 100,
-//   crossover: 0.3,
-//   mutation: 0.3,
-//   skip: 10,
-//   // iterations: 4000,
-//   // size: 250,
-//   // crossover: 0.3,
-//   // mutation: 0.3,
-//   // skip: 20,
-// };
-
-// const userData: UserData = {
-//   // beautifiers: ["Prettier", "JS-Beautify"],
-//   beautifiers,
-//   language: "JavaScript",
-
-//   // originalText: `if(true){console.log({ hello: "world" });}`,
-//   // desiredText: `if(true){console.log({ hello: "world" });}`,
-//   // desiredText: `if (true) {\n  console.log({hello: 'world'})\n}\n`,
-//   // desiredText: `if (true) {\n   console.log({hello: 'world'})\n}\n`,
-
-//   // originalText: `if(true){console.log("hello world");}`,
-//   // desiredText: `if (true) {\n  console.log('hello world')\n}\n`,
-
-//   // object_curly_spacing
-//   // originalText: `var obj = { foo: "bar" };`,
-//   // desiredText: `var obj = {foo: "bar"};\n`,
-
-//   // comma_first
-//   // originalText: `const a = "a", b = "b", c = "c";`,
-//   // desiredText: `const a = "a"\n  , b = "b"\n  , c = "c";`,
-
-//   // end_with_comma
-//   // originalText: `var bar = {bar: "baz", qux: "quux"};`,
-//   // desiredText: `var bar = {\n     bar: "baz",\n    qux: "quux",\n};\n`,
-
-//   // break_chained_methods
-//   // originalText: `this.$("#fileName").val().addClass("disabled")\n  .prop("disabled", true)`,
-//   // desiredText: `this.$("#fileName")\n  .val()\n  .addClass("disabled")\n  .prop("disabled", true)\n`,
-//   // desiredText: `this.$("#fileName").val().addClass("disabled")\n  .prop("disabled", true)`,
-
-//   // arrow_parens
-//   // originalText: `a => {};`,
-//   // desiredText: `(a) => {};`,
-//   // desiredText: `a => {};`,
-
-//   // pragma_insert
-//   originalText: `console.log("hello world");`,
-//   desiredText: `/** @format */\nconsole.log('hello world')\n`,
-// };
-// const genetic = new UnibeautifyGenetic({
-//   configuration,
-//   userData,
-// });
-// genetic.evolve();

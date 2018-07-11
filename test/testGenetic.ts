@@ -3,15 +3,16 @@ import * as Genetic from "@glavin001/genetic-js";
 import { raw } from "./raw-serializer";
 import { UnibeautifyGenetic, UserData, Entity } from "../src/index";
 
-export function testGenetic(title: string, userData: UserData) {
+export function testGenetic(title: string, userData: UserData, skip?: true) {
   const configuration: Partial<Genetic.Configuration> = {
-    iterations: 100,
-    size: 50,
+    fittestAlwaysSurvives: true,
+    iterations: 500,
+    size: 20,
     crossover: 0.8,
-    mutation: 0.8,
+    mutation: 0.5,
     skip: 100,
   };
-  test(title, done => {
+  (skip ? test.skip : test)(title, done => {
     expect.hasAssertions();
     const genetic = new UnibeautifyGenetic({
       configuration,

@@ -9,7 +9,8 @@
     "unibeautify": "ts-node src/UnibeautifySolver.ts",
     "test2": "ts-node src/PhraseSolver.ts",
     "test": "npm run build && npm run jest",
-    "start": "ts-node scripts/run.ts"
+    "start": "ts-node scripts/run.ts",
+    "calcSpace": "ts-node scripts/calcSpace.ts"
   },
   "repository": {
     "type": "git",
