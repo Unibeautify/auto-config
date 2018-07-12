@@ -29,8 +29,8 @@ Object {
     "end_with_comma": true,
     "end_with_newline": true,
     "end_with_semicolon": false,
+    "jslint_happy": true,
     "pragma_insert": true,
-    "space_after_anon_function": true,
     "space_in_paren": true,
   },
 }

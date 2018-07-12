@@ -11,8 +11,8 @@ Object {
     "beautifiers": Array [
       "JS-Beautify",
     ],
-    "break_chained_methods": true,
     "indent_size": 2,
+    "wrap_line_length": 8,
   },
 }
 `;

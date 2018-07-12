@@ -21,7 +21,7 @@ exports[`indent_size=2: fitness 1`] = `0`;
 
 exports[`indent_size=3: beautifiedText 1`] = `
 if (true) {
-    helloWorld();
+   helloWorld();
 }
 `;
 
@@ -30,30 +30,33 @@ Object {
   "options": Object {
     "beautifiers": Array [
       "Prettier",
-      "JS-Beautify",
     ],
-    "indent_size": 4,
+    "indent_size": 3
   },
 }
 `;
 
-exports[`indent_size=3: fitness 1`] = `10000`;
+exports[`indent_size=3: fitness 1`] = `0`;
 
-exports[`indent_size=4: beautifiedText 1`] = `
+exports[`indent_size=5: beautifiedText 1`] = `
 if (true) {
-    helloWorld();
+     helloWorld();
 }
+if (true) {
+     helloWorld();
+}
+
 `;
 
-exports[`indent_size=4: entity 1`] = `
+exports[`indent_size=5: entity 1`] = `
 Object {
   "options": Object {
     "beautifiers": Array [
-      "JS-Beautify",
+      "Prettier",
     ],
-    "break_chained_methods": true,
+    "indent_size": 5,
   },
 }
 `;
 
-exports[`indent_size=4: fitness 1`] = `0`;
+exports[`indent_size=5: fitness 1`] = `0`;

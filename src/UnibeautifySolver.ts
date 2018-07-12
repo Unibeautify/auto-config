@@ -199,7 +199,7 @@ export class UnibeautifyGenetic extends Genetic.Genetic<Entity, UserData> {
     const enabledBeautifiers = (<any>entity.options).beautifiers;
     const hasMultipleBeautifiers = enabledBeautifiers.length > 1;
 
-    const numOfMutations = 6;
+    const numOfMutations = 10;
     const chosenMutation = Math.floor(Math.random() * numOfMutations);
 
     switch (chosenMutation) {
@@ -324,9 +324,10 @@ export class UnibeautifyGenetic extends Genetic.Genetic<Entity, UserData> {
       );
     }
     const currValue: any = originalOptions[optionKey];
-    const allValues = this.exampleValues(option);
-    const values = _.without(allValues, currValue);
-    const newValue = this.randomItemFromArray(values);
+    // const allValues = this.exampleValues(option);
+    // const values = _.without(allValues, currValue);
+    // const newValue = this.randomItemFromArray(values);
+    const newValue = this.nextRandomValueForOption(option, currValue);
     return this.cleanEntity({
       ...entity,
       options: {
@@ -371,6 +372,33 @@ export class UnibeautifyGenetic extends Genetic.Genetic<Entity, UserData> {
     const values = this.exampleValues(option);
     const valuesWithUndefined = [...values, undefined];
     return this.randomItemFromArray(valuesWithUndefined);
+  }
+
+  private nextRandomValueForOption(option: Option, currValue: any): any {
+    // const allValues = this.exampleValues(option);
+    // const values = _.without(allValues, currValue);
+    // const newValue = this.randomItemFromArray(values);
+    if (currValue === undefined) {
+      return this.randomItemFromArray(this.exampleValues(option));
+    }
+    switch (option.type) {
+      case "boolean":
+        return !currValue;
+      case "integer": {
+        const step = option.multipleOf || 1;
+        const min = option.minimum || 0;
+        if (currValue <= min) {
+          return min + step;
+        }
+        const max = option.maximum || 10 * step;
+        if (currValue >= max) {
+          return max - step;
+        }
+        return step * Math.floor(_.random(min / step, max / step));
+      }
+    }
+    const values = _.without(this.exampleValues(option), currValue);
+    return this.randomItemFromArray(values);
   }
 
   private exampleValues(option: Option): any[] {
@@ -456,10 +484,14 @@ export class UnibeautifyGenetic extends Genetic.Genetic<Entity, UserData> {
       }
       const beautifierFitness: number =
         Math.max(0, numOfBeautifiers - 1) * 1000;
-      const ignoreOptionKeys = ["beautifiers", "indent_size", "indent_style"];
+      const ignoreOptionKeys = [
+        "beautifiers",
+        //   "indent_size",
+        //   "indent_style",
+      ];
       const optionsFitness: number = Math.max(
         0,
-        _.without(_.keys(entity.options), ...ignoreOptionKeys).length
+        _.without(_.keys(entity.options), ...ignoreOptionKeys).length - 1
       );
       return beautifierFitness + optionsFitness;
     });

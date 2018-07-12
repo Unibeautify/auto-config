@@ -10,7 +10,7 @@ const beautifiers: Beautifier[] = [
   // jsBeautify,
 ];
 const configuration: Partial<Genetic.Configuration> = {
-  iterations: 500,
+  iterations: 200,
   size: 50,
   crossover: 0.8,
   mutation: 0.5,
@@ -19,10 +19,15 @@ const configuration: Partial<Genetic.Configuration> = {
 const userData: UserData = {
   beautifiers,
   language: "JavaScript",
-  originalText: `console.log("hello world");`,
-  desiredText: `/** @format */\n\nconsole.log('hello world')\n`,
+
+  // originalText: `console.log("hello world");`,
+  // desiredText: `/** @format */\n\nconsole.log('hello world')\n`,
+
   // originalText: `var bar = {bar: "baz", qux: "quux"};\nvar foo = {bar: "baz", qux: "quux"};`,
   // desiredText: `var bar = {\n  bar: "baz",\n  qux: "quux",\n};\nvar foo = {\n  bar: "baz",\n  qux: "quux",\n};\n`,
+
+  originalText: `if (true) { helloWorld(); }\nif (true) { helloWorld(); }`,
+  desiredText: `if (true) {\n     helloWorld();\n}\nif (true) {\n     helloWorld();\n}\n`,
 };
 const genetic = new UnibeautifyGenetic({
   configuration,
