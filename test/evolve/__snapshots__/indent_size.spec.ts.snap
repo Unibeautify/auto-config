@@ -1,5 +1,25 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`indent_size=0: beautifiedText 1`] = `
+if (true) {
+helloWorld();
+helloWorld();
+}
+`;
+
+exports[`indent_size=0: entity 1`] = `
+Object {
+  "options": Object {
+    "beautifiers": Array [
+      "JS-Beautify",
+    ],
+    "indent_size": 0,
+  },
+}
+`;
+
+exports[`indent_size=0: fitness 1`] = `0`;
+
 exports[`indent_size=2: beautifiedText 1`] = `
 if (true) {
   helloWorld();

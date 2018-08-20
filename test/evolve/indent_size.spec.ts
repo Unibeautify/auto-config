@@ -2,6 +2,13 @@ import { testGenetic } from "../testGenetic";
 import prettier from "@unibeautify/beautifier-prettier";
 import jsBeautify from "@unibeautify/beautifier-js-beautify";
 
+// testGenetic("indent_size=0", {
+//   beautifiers: [prettier, jsBeautify],
+//   language: "JavaScript",
+//   originalText: `if (true) { helloWorld();\n helloWorld();\n}`,
+//   desiredText: `if (true) {\nhelloWorld();\nhelloWorld();\n}`,
+// });
+
 testGenetic("indent_size=2", {
   beautifiers: [prettier, jsBeautify],
   language: "JavaScript",

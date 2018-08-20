@@ -42,8 +42,10 @@ export class UnibeautifyGenetic extends Genetic.Genetic<Entity, UserData> {
 
   private readonly unibeautify: Unibeautify;
   private readonly language: Language;
-  private readonly dataloaderCacheMap: Map<Entity, Promise<string>>;
-  private readonly dataloader: DataLoader<Entity, string>;
+  private readonly beautifyDataloaderCacheMap: Map<string, Promise<string>>;
+  private readonly beautifyDataloader: DataLoader<Entity, string>;
+  private readonly fitnessDataloaderCacheMap: Map<string, Promise<number>>;
+  private readonly fitnessDataloader: DataLoader<Entity, number>;
 
   constructor({
     configuration,
@@ -56,12 +58,22 @@ export class UnibeautifyGenetic extends Genetic.Genetic<Entity, UserData> {
     this.unibeautify = newUnibeautify();
     this.initializeUnibeautify();
     this.language = this.getLanguage();
-    this.dataloaderCacheMap = new Map();
-    this.dataloader = new DataLoader<Entity, string>(
+    this.beautifyDataloaderCacheMap = new Map();
+    this.beautifyDataloader = new DataLoader<Entity, string>(
       entities =>
         Promise.all(entities.map(entity => this.internalBeautify(entity))),
       {
-        cacheMap: this.dataloaderCacheMap,
+        cacheMap: this.beautifyDataloaderCacheMap as Map<any, Promise<string>>,
+        cacheKeyFn: stringify,
+      }
+    );
+
+    this.fitnessDataloaderCacheMap = new Map();
+    this.fitnessDataloader = new DataLoader<Entity, number>(
+      entities =>
+        Promise.all(entities.map(entity => this.internalFitness(entity))),
+      {
+        cacheMap: this.fitnessDataloaderCacheMap as Map<any, Promise<number>>,
         cacheKeyFn: stringify,
       }
     );
@@ -475,6 +487,15 @@ export class UnibeautifyGenetic extends Genetic.Genetic<Entity, UserData> {
   }
 
   public fitness(entity: Entity): Promise<number> {
+    const cleanEntity = this.cleanEntity(entity);
+    // if (this.fitnessDataloaderCacheMap.has(stringify(cleanEntity))) {
+    //   console.info("Fitness cache hit");
+    // }
+    return this.fitnessDataloader.load(cleanEntity);
+    // return this.internalFitness(entity);
+  }
+
+  private internalFitness(entity: Entity): Promise<number> {
     return this.beautify(entity).then((beautifiedText: string) => {
       const diffCount = fastLevenshtein.get(this.desiredText, beautifiedText);
       const numOfBeautifiers = (<any>entity.options).beautifiers.length;
@@ -497,9 +518,12 @@ export class UnibeautifyGenetic extends Genetic.Genetic<Entity, UserData> {
     });
   }
 
-  private beautify(entity: Entity) {
+  public beautify(entity: Entity) {
     const cleanEntity = this.cleanEntity(entity);
-    return this.dataloader.load(cleanEntity);
+    // if (this.beautifyDataloaderCacheMap.has(stringify(cleanEntity))) {
+    //   console.info("Beautify cache hit");
+    // }
+    return this.beautifyDataloader.load(cleanEntity);
   }
 
   private internalBeautify(entity: Entity) {

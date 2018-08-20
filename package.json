@@ -35,6 +35,7 @@
     "@unibeautify/beautifier-js-beautify": "^0.3.2",
     "@unibeautify/beautifier-prettier": "^0.8.0",
     "@unibeautify/beautifier-prettydiff": "^0.5.3",
+    "asciichart": "^1.5.7",
     "eslint": "^5.1.0",
     "jest": "^22.4.3",
     "js-beautify": "^1.7.5",
@@ -48,6 +49,7 @@
   },
   "dependencies": {
     "@glavin001/genetic-js": "^0.2.1",
+    "@unibeautify/beautifier-file": "file:../beautifier-file",
     "dataloader": "^1.4.0",
     "fast-levenshtein": "^2.0.6",
     "json-stable-stringify": "^1.0.1",
