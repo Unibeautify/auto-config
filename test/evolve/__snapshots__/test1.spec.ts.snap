@@ -2,15 +2,14 @@
 
 exports[`test1: beautifiedText 1`] = `if(true){console.log({ hello: "world" });}`;
 
-exports[`test1: entity 1`] = `
-Object {
-  "options": Object {
-    "beautifiers": Array [
-      "Prettier",
-    ],
-    "pragma_require": true,
-  },
-}
+exports[`test1: beautifiers 1`] = `
+Array [
+  "Prettier",
+]
 `;
 
-exports[`test1: fitness 1`] = `0`;
+exports[`test1: trimmedOptions 1`] = `
+Object {
+  "pragma_require": true,
+}
+`;

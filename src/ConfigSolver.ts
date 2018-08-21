@@ -6,7 +6,7 @@ import * as _ from "lodash";
 import { UnibeautifyGenetic, Options, Entity } from "./UnibeautifySolver";
 
 export class ConfigSolver extends UnibeautifyGenetic {
-  private readonly optionsCount: number;
+  // private readonly optionsCount: number;
   private readonly originalTextVariations: Promise<string>[];
 
   constructor(options: Options) {
@@ -17,15 +17,19 @@ export class ConfigSolver extends UnibeautifyGenetic {
       );
     }
     super(options);
-    this.optionsCount = this.optionKeys.length;
+    // this.optionsCount = this.optionKeys.length;
     console.log(JSON.stringify(this.optionKeys, null, 2));
-    const variationsCount = 30;
+    const variationsCount = 10;
     this.originalTextVariations = [];
     for (let currSeed = 0; currSeed < variationsCount; ++currSeed) {
       this.originalTextVariations.push(
         this.beautify(this.originalText, this.seed())
       );
     }
+  }
+
+  public get optionsCount(): number {
+    return this.optionKeys.length;
   }
 
   protected internalFitness(entity: Entity): Promise<number> {
@@ -98,11 +102,11 @@ export class ConfigSolver extends UnibeautifyGenetic {
     );
   }
 
-  protected diffCount(src: string, dest: string): number {
+  public diffCount(src: string, dest: string): number {
     return fastLevenshtein.get(src, dest);
   }
 
-  protected optionsUsed(entity: Entity): number {
+  public optionsUsed(entity: Entity): number {
     const ignoreOptionKeys = [
       "beautifiers",
       //   "indent_size",

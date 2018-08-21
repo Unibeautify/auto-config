@@ -3,7 +3,7 @@
         "module": "commonjs",
         "noImplicitAny": true,
         "removeComments": false,
-        "noUnusedLocals": true,
+        "noUnusedLocals": false,
         "strictNullChecks": true,
         "preserveConstEnums": true,
         "sourceMap": true,

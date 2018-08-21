@@ -7,17 +7,16 @@ if (true) {
 
 `;
 
-exports[`quotes + object_curly_spacing: entity 1`] = `
-Object {
-  "options": Object {
-    "beautifiers": Array [
-      "Prettier",
-    ],
-    "end_with_semicolon": false,
-    "object_curly_spacing": false,
-    "quotes": "single",
-  },
-}
+exports[`quotes + object_curly_spacing: beautifiers 1`] = `
+Array [
+  "Prettier",
+]
 `;
 
-exports[`quotes + object_curly_spacing: fitness 1`] = `2`;
+exports[`quotes + object_curly_spacing: trimmedOptions 1`] = `
+Object {
+  "end_with_semicolon": false,
+  "object_curly_spacing": false,
+  "quotes": "single",
+}
+`;

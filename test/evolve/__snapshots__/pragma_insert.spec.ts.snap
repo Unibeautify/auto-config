@@ -7,17 +7,16 @@ console.log('hello world')
 
 `;
 
-exports[`pragma_insert: entity 1`] = `
-Object {
-  "options": Object {
-    "beautifiers": Array [
-      "Prettier",
-    ],
-    "end_with_semicolon": false,
-    "pragma_insert": true,
-    "quotes": "single",
-  },
-}
+exports[`pragma_insert: beautifiers 1`] = `
+Array [
+  "Prettier",
+]
 `;
 
-exports[`pragma_insert: fitness 1`] = `2`;
+exports[`pragma_insert: trimmedOptions 1`] = `
+Object {
+  "end_with_semicolon": false,
+  "pragma_insert": true,
+  "quotes": "single",
+}
+`;

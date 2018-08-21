@@ -1,62 +1,43 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`indent_size=0: beautifiedText 1`] = `
-if (true) {
-helloWorld();
-helloWorld();
-}
-`;
-
-exports[`indent_size=0: entity 1`] = `
-Object {
-  "options": Object {
-    "beautifiers": Array [
-      "JS-Beautify",
-    ],
-    "indent_size": 0,
-  },
-}
-`;
-
-exports[`indent_size=0: fitness 1`] = `0`;
-
 exports[`indent_size=2: beautifiedText 1`] = `
 if (true) {
   helloWorld();
 }
 `;
 
-exports[`indent_size=2: entity 1`] = `
-Object {
-  "options": Object {
-    "beautifiers": Array [
-      "JS-Beautify",
-    ],
-    "indent_size": 2,
-  },
-}
+exports[`indent_size=2: beautifiers 1`] = `
+Array [
+  "JS-Beautify",
+]
 `;
 
-exports[`indent_size=2: fitness 1`] = `0`;
+exports[`indent_size=2: trimmedOptions 1`] = `
+Object {
+  "brace_style": "none",
+  "indent_size": 2,
+}
+`;
 
 exports[`indent_size=3: beautifiedText 1`] = `
 if (true) {
-   helloWorld();
+    helloWorld();
 }
 `;
 
-exports[`indent_size=3: entity 1`] = `
+exports[`indent_size=3: beautifiers 1`] = `
+Array [
+  "Prettier",
+  "JS-Beautify",
+]
+`;
+
+exports[`indent_size=3: trimmedOptions 1`] = `
 Object {
-  "options": Object {
-    "beautifiers": Array [
-      "Prettier",
-    ],
-    "indent_size": 3
-  },
+  "brace_style": "none",
+  "indent_style": "space",
 }
 `;
-
-exports[`indent_size=3: fitness 1`] = `0`;
 
 exports[`indent_size=5: beautifiedText 1`] = `
 if (true) {
@@ -68,15 +49,14 @@ if (true) {
 
 `;
 
-exports[`indent_size=5: entity 1`] = `
-Object {
-  "options": Object {
-    "beautifiers": Array [
-      "Prettier",
-    ],
-    "indent_size": 5,
-  },
-}
+exports[`indent_size=5: beautifiers 1`] = `
+Array [
+  "Prettier",
+]
 `;
 
-exports[`indent_size=5: fitness 1`] = `0`;
+exports[`indent_size=5: trimmedOptions 1`] = `
+Object {
+  "indent_size": 5,
+}
+`;

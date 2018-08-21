@@ -5,15 +5,15 @@ var obj = {foo: "bar"};
 
 `;
 
-exports[`object_curly_spacing: entity 1`] = `
-Object {
-  "options": Object {
-    "beautifiers": Array [
-      "Prettier",
-    ],
-    "object_curly_spacing": false,
-  },
-}
+exports[`object_curly_spacing: beautifiers 1`] = `
+Array [
+  "Prettier",
+]
 `;
 
-exports[`object_curly_spacing: fitness 1`] = `0`;
+exports[`object_curly_spacing: trimmedOptions 1`] = `
+Object {
+  "object_curly_spacing": false,
+  "quotes": "none",
+}
+`;

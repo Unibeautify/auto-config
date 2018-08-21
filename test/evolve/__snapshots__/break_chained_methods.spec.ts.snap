@@ -2,19 +2,18 @@
 
 exports[`break_chained_methods break_chained_methods=true: beautifiedText 1`] = `
 foo.bar()
-  .baz();
+    .baz();
 `;
 
-exports[`break_chained_methods break_chained_methods=true: entity 1`] = `
+exports[`break_chained_methods break_chained_methods=true: beautifiers 1`] = `
+Array [
+  "JS-Beautify",
+]
+`;
+
+exports[`break_chained_methods break_chained_methods=true: trimmedOptions 1`] = `
 Object {
-  "options": Object {
-    "beautifiers": Array [
-      "JS-Beautify",
-    ],
-    "indent_size": 2,
-    "wrap_line_length": 8,
-  },
+  "break_chained_methods": true,
+  "end_with_newline": false,
 }
 `;
-
-exports[`break_chained_methods break_chained_methods=true: fitness 1`] = `1`;

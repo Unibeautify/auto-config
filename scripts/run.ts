@@ -1,31 +1,31 @@
 import * as Genetic from "@glavin001/genetic-js";
-import { Beautifier } from "unibeautify";
+import { Beautifier, OptionValues } from "unibeautify";
 import prettier from "@unibeautify/beautifier-prettier";
 import jsBeautify from "@unibeautify/beautifier-js-beautify";
 import fileBeautifier from "@unibeautify/beautifier-file";
-// import * as fs from "fs";
-// import * as path from "path";
+import * as fs from "fs";
+import * as path from "path";
 // import * as _ from "lodash";
 // import * as stringify from "json-stable-stringify";
 import * as asciichart from "asciichart";
 
-import { UserData, Entity } from "../src/index";
+import { UserData, Entity, UnibeautifyGenetic } from "../src/index";
 import { ConfigSolver } from "../src/ConfigSolver";
 
-// const fixtureText = fs
-//   .readFileSync(path.resolve(__dirname, "../test/fixtures/ReactElement.js"))
-//   .toString();
+const fixtureText = fs
+  .readFileSync(path.resolve(__dirname, "../test/fixtures/ReactElement.js"))
+  .toString();
 
 const beautifiers: Beautifier[] = [prettier, jsBeautify, fileBeautifier];
 const configuration: Partial<Genetic.Configuration> = {
   iterations: 30,
   // size: 50,
-  // iterations: 1000,
-  // size: 100,
-  size: 200,
+  // iterations: 300,
+  // size: 50,
+  size: 10,
   crossover: 0.8,
-  mutation: 0.5,
-  // mutation: 0.75,
+  // mutation: 0.5,
+  mutation: 0.75,
   // skip: 5,
   // iterations: 20,
   // size: 5,
@@ -33,14 +33,15 @@ const configuration: Partial<Genetic.Configuration> = {
   // mutation: 0.5,
   skip: 1,
 };
+
 const desiredText = `/** @format */\r\n\r\nif (true) {\r\n  console.log('hello world');\r\n  helloWorld();\r\n}\r\n`;
 
 const userData: UserData = {
   beautifiers,
   language: "JavaScript",
 
-  originalText: desiredText,
-  desiredText,
+  // originalText: desiredText,
+  // desiredText,
 
   // originalText: `console.log("hello world");`,
   // desiredText: `/** @format */\n\nconsole.log('hello world')\n`,
@@ -67,8 +68,8 @@ const userData: UserData = {
   // originalText: `console.log('hello world')\n`,
   // desiredText: `console.log('hello world')\n`,
 
-  // originalText: fixtureText,
-  // desiredText: fixtureText,
+  originalText: fixtureText,
+  desiredText: fixtureText,
 };
 const desiredEntity: Entity = {
   options: {
@@ -97,13 +98,29 @@ const genetic = new ConfigSolver({
   userData,
 });
 
+/*
+genetic.optionsImportance
+  .buildImportantOptionsRegistry()
+  .then(optionsRegistry => {
+    console.log(JSON.stringify(optionsRegistry, null, 2));
+    const importantOptionKeys = Object.keys(optionsRegistry);
+    const allOptionKeys = Object.keys(genetic.optionsRegistry);
+    console.log(
+      `${importantOptionKeys.length} of ${
+        allOptionKeys.length
+      } keys are important`
+    );
+
+    // (genetic as any).optionsRegistry = optionsRegistry;
+    // genetic.evolve().catch(console.error);
+  });
+*/
+
 const history: number[] = [];
-genetic.notification = function({
-  population,
-  isFinished,
-  generation,
-  stats,
-}: Genetic.Notification<Entity>) {
+genetic.notification = function(
+  this: typeof genetic,
+  { population, isFinished, generation, stats }: Genetic.Notification<Entity>
+) {
   const bestFromPop = population[0];
   console.log(generation, bestFromPop.fitness, isFinished, stats);
   console.log(`[ ${population.map(entity => entity.fitness).join(", ")} ]`);
@@ -112,64 +129,90 @@ genetic.notification = function({
     // console.log(history);
     console.log(asciichart.plot(history, { height: 20 }));
   }
-  // if (isFinished) {
-  Promise.all([
-    this.beautify(this.originalText, bestFromPop.entity),
-    this.beautify(this.originalText, desiredEntity),
-  ]).then(([beautifiedText, desiredText]: [string, string]) => {
-    console.log(`Solution after ${generation} generations:`);
-    console.log(JSON.stringify(bestFromPop, null, 2));
-    console.log(JSON.stringify(stats, null, 2));
-    console.log(
-      JSON.stringify(
-        {
-          fitness: bestFromPop.fitness,
-          diff: this.diffCount(beautifiedText, desiredText),
-          optionsUsed: this.optionsUsed(bestFromPop.entity),
-          allOptions: this.optionsCount,
-        },
-        null,
-        2
-      )
-    );
+  if (isFinished) {
+    Promise.all([
+      this.beautify(this.originalText, bestFromPop.entity),
+      this.beautify(this.originalText, desiredEntity),
+      this.trimOptions(bestFromPop.entity.options),
+    ]).then(
+      ([beautifiedText, desiredText, trimmedOptions]: [
+        string,
+        string,
+        OptionValues
+      ]) => {
+        console.log(`Solution after ${generation} generations:`);
+        console.log(JSON.stringify(bestFromPop, null, 2));
+        console.log(JSON.stringify(trimmedOptions, null, 2));
+        console.log(JSON.stringify(stats, null, 2));
+        console.log(
+          JSON.stringify(
+            {
+              fitness: bestFromPop.fitness,
+              diff: this.diffCount(beautifiedText, desiredText),
+              optionsUsed: this.optionsUsed(bestFromPop.entity),
+              allOptions: this.optionsCount,
+            },
+            null,
+            2
+          )
+        );
 
-    // console.log("-".repeat(20));
-    // console.log(`${"-".repeat(10)} Alternative Entities ${"-".repeat(10)}`);
-    // const diffCount = Math.floor(bestFromPop.fitness / 10000);
-    // _.uniqBy(
-    //   population.filter(({ fitness }) => {
-    //     return Math.floor(fitness / 10000) === diffCount;
-    //   }),
-    //   stringify
-    // ).forEach((entity, index) => {
-    //   console.log(`${"-".repeat(10)} Config ${index + 1} ${"-".repeat(10)}`);
-    //   console.log(JSON.stringify(entity, null, 2));
-    // });
+        // console.log("-".repeat(20));
+        // console.log(`${"-".repeat(10)} Alternative Entities ${"-".repeat(10)}`);
+        // const diffCount = Math.floor(bestFromPop.fitness / 10000);
+        // _.uniqBy(
+        //   population.filter(({ fitness }) => {
+        //     return Math.floor(fitness / 10000) === diffCount;
+        //   }),
+        //   stringify
+        // ).forEach((entity, index) => {
+        //   console.log(`${"-".repeat(10)} Config ${index + 1} ${"-".repeat(10)}`);
+        //   console.log(JSON.stringify(entity, null, 2));
+        // });
 
-    console.log(`${"-".repeat(10)} Desired Text ${"-".repeat(10)}`);
-    console.log(this.desiredText);
-    console.log(
-      `${"-".repeat(10)} Text from Desired Options ${"-".repeat(10)}`
+        console.log(`${"-".repeat(10)} Desired Text ${"-".repeat(10)}`);
+        console.log(this.desiredText);
+        console.log(
+          `${"-".repeat(10)} Text from Desired Options ${"-".repeat(10)}`
+        );
+        console.log(desiredText);
+        console.log(`${"-".repeat(10)} Beautified Text ${"-".repeat(10)}`);
+        console.log(beautifiedText);
+        console.log("-".repeat(20));
+        // console.log(history);
+        console.log(asciichart.plot(history, { height: 40 }));
+        console.log("-".repeat(20));
+
+        const { configuration } = this as any;
+        const progress: string = (
+          generation /
+          configuration.iterations *
+          100
+        ).toFixed(2);
+        console.log(
+          `${progress}% progress... (${generation} of ${
+            configuration.iterations
+          })`
+        );
+      }
     );
-    console.log(desiredText);
-    console.log(`${"-".repeat(10)} Beautified Text ${"-".repeat(10)}`);
-    console.log(beautifiedText);
+  } else {
+    population.slice(0, 1).forEach((entity, index) => {
+      console.log(`${"-".repeat(10)} Config ${index + 1} ${"-".repeat(10)}`);
+      console.log(JSON.stringify(entity, null, 2));
+    });
+
     console.log("-".repeat(20));
-    // console.log(history);
-    console.log(asciichart.plot(history, { height: 40 }));
-    console.log("-".repeat(20));
-
+    const { configuration } = this as any;
+    const progress: string = (
+      generation /
+      configuration.iterations *
+      100
+    ).toFixed(2);
     console.log(
-      `${(generation / this.configuration.iterations * 100).toFixed(
-        2
-      )}% progress... (${generation} of ${this.configuration.iterations})`
+      `${progress}% progress... (${generation} of ${configuration.iterations})`
     );
-  });
-  // } else {
-  //   population.slice(0, 1).forEach((entity, index) => {
-  //     console.log(`${"-".repeat(10)} Config ${index + 1} ${"-".repeat(10)}`);
-  //     console.log(JSON.stringify(entity, null, 2));
-  //   });
-  // }
+    console.log(`Last generation with same fitness: ${this.lastGenWithSameFitness(bestFromPop.fitness)}`);
+  }
 };
 genetic.evolve().catch(console.error);

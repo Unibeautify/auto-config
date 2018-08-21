@@ -2,16 +2,15 @@
 
 exports[`arrow_parens: beautifiedText 1`] = `(a) => {};`;
 
-exports[`arrow_parens: entity 1`] = `
-Object {
-  "options": Object {
-    "arrow_parens": "always",
-    "beautifiers": Array [
-      "Prettier",
-      "JS-Beautify",
-    ],
-  },
-}
+exports[`arrow_parens: beautifiers 1`] = `
+Array [
+  "Prettier",
+  "JS-Beautify",
+]
 `;
 
-exports[`arrow_parens: fitness 1`] = `1000`;
+exports[`arrow_parens: trimmedOptions 1`] = `
+Object {
+  "arrow_parens": "always",
+}
+`;

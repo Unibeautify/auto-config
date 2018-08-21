@@ -15,17 +15,16 @@ var bar = {
 
 `;
 
-exports[`prettier1: entity 1`] = `
-Object {
-  "options": Object {
-    "beautifiers": Array [
-      "Prettier",
-    ],
-    "end_with_comma": true,
-    "end_with_semicolon": false,
-    "pragma_insert": true,
-  },
-}
+exports[`prettier1: beautifiers 1`] = `
+Array [
+  "Prettier",
+]
 `;
 
-exports[`prettier1: fitness 1`] = `2`;
+exports[`prettier1: trimmedOptions 1`] = `
+Object {
+  "end_with_comma": true,
+  "end_with_semicolon": false,
+  "pragma_insert": true,
+}
+`;

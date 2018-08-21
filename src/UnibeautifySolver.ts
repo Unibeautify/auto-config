@@ -16,6 +16,7 @@ import * as DataLoader from "dataloader";
 import * as stringify from "json-stable-stringify";
 
 import { Select1, Select2 } from "./Selection";
+import { ImportantOptionsRegistryBuilder } from "./OptionImportance";
 
 export interface Entity {
   options: OptionValues;
@@ -40,21 +41,24 @@ export class UnibeautifyGenetic extends Genetic.Genetic<Entity, UserData> {
   // select2 = Select2.RandomFittestAndTournament3;
   select2 = Select2.DifferentPair;
 
-  private readonly unibeautify: Unibeautify;
+  public readonly unibeautify: Unibeautify;
   private readonly language: Language;
   private readonly beautifyDataloaderCacheMap: Map<string, Promise<string>>;
   private readonly beautifyDataloader: DataLoader<BeautifyRequest, string>;
   private readonly fitnessDataloaderCacheMap: Map<string, Promise<number>>;
   private readonly fitnessDataloader: DataLoader<Entity, number>;
+  public readonly optionsImportance: ImportantOptionsRegistryBuilder;
+  public optionsRegistry: OptionsRegistry;
+  private history: number[] = [];
 
-  constructor({
-    configuration,
-    userData,
-  }: Options) {
+  constructor({ configuration, userData }: Options) {
     super(configuration, userData);
     this.unibeautify = newUnibeautify();
     this.initializeUnibeautify();
     this.language = this.getLanguage();
+    this.optionsRegistry = this.unibeautify.getOptionsSupportedForLanguage(
+      this.language
+    );
     this.beautifyDataloaderCacheMap = new Map();
     this.beautifyDataloader = new DataLoader<BeautifyRequest, string>(
       entities =>
@@ -74,6 +78,8 @@ export class UnibeautifyGenetic extends Genetic.Genetic<Entity, UserData> {
         cacheKeyFn: stringify,
       }
     );
+
+    this.optionsImportance = new ImportantOptionsRegistryBuilder(this);
   }
 
   private initializeUnibeautify() {
@@ -163,7 +169,11 @@ export class UnibeautifyGenetic extends Genetic.Genetic<Entity, UserData> {
       options,
       (value, optionName: BeautifierOptionName) => {
         if (<any>optionName === "beautifiers") {
-          return value;
+          // return value;
+          return _.sortBy(
+            value as string[],
+            beautifierName => (beautifierName === "File" ? Infinity : 0)
+          );
         }
         const doesSupportOption = this.doesSupportOption(
           optionName,
@@ -383,7 +393,7 @@ export class UnibeautifyGenetic extends Genetic.Genetic<Entity, UserData> {
     return this.randomItemFromArray(valuesWithUndefined);
   }
 
-  private nextRandomValueForOption(option: Option, currValue: any): any {
+  public nextRandomValueForOption(option: Option, currValue: any): any {
     // const allValues = this.exampleValues(option);
     // const values = _.without(allValues, currValue);
     // const newValue = this.randomItemFromArray(values);
@@ -410,7 +420,7 @@ export class UnibeautifyGenetic extends Genetic.Genetic<Entity, UserData> {
     return this.randomItemFromArray(values);
   }
 
-  private exampleValues(option: Option): any[] {
+  public exampleValues(option: Option): any[] {
     if (option.enum) {
       return option.enum;
     }
@@ -475,9 +485,9 @@ export class UnibeautifyGenetic extends Genetic.Genetic<Entity, UserData> {
     return Object.keys(this.optionsRegistry).sort() as any[];
   }
 
-  private get optionsRegistry(): OptionsRegistry {
-    return this.unibeautify.getOptionsSupportedForLanguage(this.language);
-  }
+  // public get optionsRegistry(): OptionsRegistry {
+  //   return this.unibeautify.getOptionsSupportedForLanguage(this.language);
+  // }
 
   private get languageName(): string {
     return this.userData.language;
@@ -493,26 +503,28 @@ export class UnibeautifyGenetic extends Genetic.Genetic<Entity, UserData> {
   }
 
   protected internalFitness(entity: Entity): Promise<number> {
-    return this.beautify(this.originalText, entity).then((beautifiedText: string) => {
-      const diffCount = fastLevenshtein.get(this.desiredText, beautifiedText);
-      const numOfBeautifiers = (<any>entity.options).beautifiers.length;
-      const diffFitness: number = diffCount * 10000;
-      if (diffCount !== 0) {
-        return diffFitness;
+    return this.beautify(this.originalText, entity).then(
+      (beautifiedText: string) => {
+        const diffCount = fastLevenshtein.get(this.desiredText, beautifiedText);
+        const numOfBeautifiers = (<any>entity.options).beautifiers.length;
+        const diffFitness: number = diffCount * 10000;
+        if (diffCount !== 0) {
+          return diffFitness;
+        }
+        const beautifierFitness: number =
+          Math.max(0, numOfBeautifiers - 1) * 1000;
+        const ignoreOptionKeys = [
+          "beautifiers",
+          //   "indent_size",
+          //   "indent_style",
+        ];
+        const optionsFitness: number = Math.max(
+          0,
+          _.without(_.keys(entity.options), ...ignoreOptionKeys).length - 1
+        );
+        return beautifierFitness + optionsFitness;
       }
-      const beautifierFitness: number =
-        Math.max(0, numOfBeautifiers - 1) * 1000;
-      const ignoreOptionKeys = [
-        "beautifiers",
-        //   "indent_size",
-        //   "indent_style",
-      ];
-      const optionsFitness: number = Math.max(
-        0,
-        _.without(_.keys(entity.options), ...ignoreOptionKeys).length - 1
-      );
-      return beautifierFitness + optionsFitness;
-    });
+    );
   }
 
   public beautify(text: string, entity: Entity) {
@@ -538,22 +550,34 @@ export class UnibeautifyGenetic extends Genetic.Genetic<Entity, UserData> {
     return this.unibeautify.beautify(data);
   }
 
-  protected get desiredText(): string {
+  public get desiredText(): string {
     return this.userData.desiredText;
   }
 
-  protected get originalText(): string {
+  public get originalText(): string {
     return this.userData.originalText;
   }
 
-  public shouldContinue({ population }: Genetic.GeneticState<Entity>) {
+  public shouldContinue({
+    generation,
+    population,
+  }: Genetic.GeneticState<Entity>) {
     const bestFitness = population[0].fitness;
+    this.history.push(bestFitness);
     const isPerfect = bestFitness === 0;
     if (isPerfect) {
       return false;
     }
     const textIsTheSame = Math.floor(bestFitness / 10000) === 0;
     if (textIsTheSame) {
+      const percThreshold = 0.3;
+      if (
+        generation > this.configuration.iterations / 4 &&
+        generation / this.lastGenWithSameFitness(bestFitness) - 1 >=
+          percThreshold
+      ) {
+        return false;
+      }
       const bestEntities = population.filter(
         entity => entity.fitness === bestFitness
       );
@@ -571,6 +595,14 @@ export class UnibeautifyGenetic extends Genetic.Genetic<Entity, UserData> {
     return true;
   }
 
+  public lastGenWithSameFitness(fitness: number): number {
+    const index = this.history.findIndex(f => f <= fitness);
+    if (index === -1) {
+      return Math.max(0, this.history.length - 1);
+    }
+    return index;
+  }
+
   notification({
     population,
     isFinished,
@@ -579,17 +611,54 @@ export class UnibeautifyGenetic extends Genetic.Genetic<Entity, UserData> {
   }: Genetic.Notification<Entity>) {
     console.log(generation, population[0].fitness, isFinished);
     if (isFinished) {
-      this.beautify(this.originalText, population[0].entity).then(beautifiedText => {
-        console.log(`Solution after ${generation} generations:`);
-        console.log(JSON.stringify(population[0], null, 2));
-        console.log(JSON.stringify(stats, null, 2));
-        console.log("-".repeat(20));
-        console.log(this.desiredText);
-        console.log("-".repeat(20));
-        console.log(beautifiedText);
-        console.log("-".repeat(20));
-      });
+      this.beautify(this.originalText, population[0].entity).then(
+        beautifiedText => {
+          console.log(`Solution after ${generation} generations:`);
+          console.log(JSON.stringify(population[0], null, 2));
+          console.log(JSON.stringify(stats, null, 2));
+          console.log("-".repeat(20));
+          console.log(this.desiredText);
+          console.log("-".repeat(20));
+          console.log(beautifiedText);
+          console.log("-".repeat(20));
+        }
+      );
     }
+  }
+
+  public trimOptions(options: OptionValues): Promise<OptionValues> {
+    return this.generateOptionsRegistry(options).then(optionsRegistry => {
+      const includeOptionKeys: string[] = Object.keys(optionsRegistry);
+      return _.pick(options, includeOptionKeys) as OptionValues;
+    });
+  }
+
+  public evolve(): Promise<void> {
+    return this.generateOptionsRegistry().then(optionsRegistry => {
+      this.optionsRegistry = optionsRegistry;
+      return super.evolve();
+    });
+  }
+
+  private generateOptionsRegistry(
+    optionValues: OptionValues = {}
+  ): Promise<OptionsRegistry> {
+    return this.optionsImportance
+      .buildImportantOptionsRegistry(optionValues)
+      .then(optionsRegistry => {
+        // console.log(JSON.stringify(optionsRegistry, null, 2));
+        const importantOptionKeys = Object.keys(optionsRegistry);
+        const allOptionKeys = Object.keys(this.optionsRegistry);
+
+        console.log(
+          `${importantOptionKeys.length} of ${
+            allOptionKeys.length
+          } keys are important`
+        );
+        console.log(importantOptionKeys.join(", "));
+
+        return optionsRegistry;
+      });
   }
 }
 

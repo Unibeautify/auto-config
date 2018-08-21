@@ -18,17 +18,25 @@ export function testGenetic(title: string, userData: UserData, skip?: true) {
       configuration,
       userData,
     });
-    genetic.notification = function({
-      population,
-      isFinished,
-    }: Genetic.Notification<Entity>) {
+    genetic.notification = function(
+      this: UnibeautifyGenetic,
+      { population, isFinished }: Genetic.Notification<Entity>
+    ) {
       if (isFinished) {
-        this.beautify(population[0].entity).then((beautifiedText: string) => {
-          expect(raw(beautifiedText)).toMatchSnapshot("beautifiedText");
-          expect(population[0].entity).toMatchSnapshot("entity");
-          expect(population[0].fitness).toMatchSnapshot("fitness");
-          done();
-        });
+        this.beautify(this.originalText, population[0].entity).then(
+          (beautifiedText: string) => {
+            const entity = population[0].entity;
+            const { options } = entity;
+            expect(raw(beautifiedText)).toMatchSnapshot("beautifiedText");
+            // expect(population[0].entity).toMatchSnapshot("entity");
+            // expect(population[0].fitness).toMatchSnapshot("fitness");
+            expect((options as any).beautifiers).toMatchSnapshot("beautifiers");
+            this.trimOptions(options).then(trimmedOptions => {
+              expect(trimmedOptions).toMatchSnapshot("trimmedOptions");
+              done();
+            });
+          }
+        );
       }
     };
     return genetic.evolve().catch(error => {

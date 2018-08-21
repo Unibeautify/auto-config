@@ -8,20 +8,19 @@ helloWorld();
 
 `;
 
-exports[`end_with_newline1: entity 1`] = `
-Object {
-  "options": Object {
-    "beautifiers": Array [
-      "Prettier",
-      "File",
-    ],
-    "end_of_line": "CRLF",
-    "indent_size": 0,
-  },
-}
+exports[`end_with_newline1: beautifiers 1`] = `
+Array [
+  "Prettier",
+  "File",
+]
 `;
 
-exports[`end_with_newline1: fitness 1`] = `1001`;
+exports[`end_with_newline1: trimmedOptions 1`] = `
+Object {
+  "end_of_line": "CRLF",
+  "indent_size": 0,
+}
+`;
 
 exports[`end_with_newline2: beautifiedText 1`] = `
 if (true) {
@@ -31,18 +30,17 @@ helloWorld();
 
 `;
 
-exports[`end_with_newline2: entity 1`] = `
-Object {
-  "options": Object {
-    "beautifiers": Array [
-      "Prettier",
-    ],
-    "indent_size": 0,
-  },
-}
+exports[`end_with_newline2: beautifiers 1`] = `
+Array [
+  "Prettier",
+]
 `;
 
-exports[`end_with_newline2: fitness 1`] = `0`;
+exports[`end_with_newline2: trimmedOptions 1`] = `
+Object {
+  "indent_size": 0,
+}
+`;
 
 exports[`end_with_newline3: beautifiedText 1`] = `
 if (true) {
@@ -51,17 +49,16 @@ helloWorld();
 }
 `;
 
-exports[`end_with_newline3: entity 1`] = `
-Object {
-  "options": Object {
-    "beautifiers": Array [
-      "Prettier",
-      "File",
-    ],
-    "end_with_newline": false,
-    "indent_size": 0,
-  },
-}
+exports[`end_with_newline3: beautifiers 1`] = `
+Array [
+  "Prettier",
+  "File",
+]
 `;
 
-exports[`end_with_newline3: fitness 1`] = `1001`;
+exports[`end_with_newline3: trimmedOptions 1`] = `
+Object {
+  "end_with_newline": false,
+  "indent_size": 0,
+}
+`;

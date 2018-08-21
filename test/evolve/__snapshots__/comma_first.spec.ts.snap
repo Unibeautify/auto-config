@@ -6,16 +6,15 @@ const a = "a"
   , c = "c";
 `;
 
-exports[`comma_first: entity 1`] = `
-Object {
-  "options": Object {
-    "beautifiers": Array [
-      "JS-Beautify",
-    ],
-    "comma_first": true,
-    "indent_size": 2,
-  },
-}
+exports[`comma_first: beautifiers 1`] = `
+Array [
+  "JS-Beautify",
+]
 `;
 
-exports[`comma_first: fitness 1`] = `1`;
+exports[`comma_first: trimmedOptions 1`] = `
+Object {
+  "comma_first": true,
+  "indent_size": 2,
+}
+`;

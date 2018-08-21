@@ -7,16 +7,15 @@ if (true) {
 
 `;
 
-exports[`quotes: entity 1`] = `
-Object {
-  "options": Object {
-    "beautifiers": Array [
-      "Prettier",
-    ],
-    "end_with_semicolon": false,
-    "quotes": "single",
-  },
-}
+exports[`quotes: beautifiers 1`] = `
+Array [
+  "Prettier",
+]
 `;
 
-exports[`quotes: fitness 1`] = `1`;
+exports[`quotes: trimmedOptions 1`] = `
+Object {
+  "end_with_semicolon": false,
+  "quotes": "single",
+}
+`;
