@@ -43,23 +43,20 @@ export class UnibeautifyGenetic extends Genetic.Genetic<Entity, UserData> {
   private readonly unibeautify: Unibeautify;
   private readonly language: Language;
   private readonly beautifyDataloaderCacheMap: Map<string, Promise<string>>;
-  private readonly beautifyDataloader: DataLoader<Entity, string>;
+  private readonly beautifyDataloader: DataLoader<BeautifyRequest, string>;
   private readonly fitnessDataloaderCacheMap: Map<string, Promise<number>>;
   private readonly fitnessDataloader: DataLoader<Entity, number>;
 
   constructor({
     configuration,
     userData,
-  }: {
-    configuration: Partial<Genetic.Configuration>;
-    userData: UserData;
-  }) {
+  }: Options) {
     super(configuration, userData);
     this.unibeautify = newUnibeautify();
     this.initializeUnibeautify();
     this.language = this.getLanguage();
     this.beautifyDataloaderCacheMap = new Map();
-    this.beautifyDataloader = new DataLoader<Entity, string>(
+    this.beautifyDataloader = new DataLoader<BeautifyRequest, string>(
       entities =>
         Promise.all(entities.map(entity => this.internalBeautify(entity))),
       {
@@ -474,7 +471,7 @@ export class UnibeautifyGenetic extends Genetic.Genetic<Entity, UserData> {
     return [son, daughter];
   }
 
-  private get optionKeys(): BeautifierOptionName[] {
+  protected get optionKeys(): BeautifierOptionName[] {
     return Object.keys(this.optionsRegistry).sort() as any[];
   }
 
@@ -495,8 +492,8 @@ export class UnibeautifyGenetic extends Genetic.Genetic<Entity, UserData> {
     // return this.internalFitness(entity);
   }
 
-  private internalFitness(entity: Entity): Promise<number> {
-    return this.beautify(entity).then((beautifiedText: string) => {
+  protected internalFitness(entity: Entity): Promise<number> {
+    return this.beautify(this.originalText, entity).then((beautifiedText: string) => {
       const diffCount = fastLevenshtein.get(this.desiredText, beautifiedText);
       const numOfBeautifiers = (<any>entity.options).beautifiers.length;
       const diffFitness: number = diffCount * 10000;
@@ -518,31 +515,34 @@ export class UnibeautifyGenetic extends Genetic.Genetic<Entity, UserData> {
     });
   }
 
-  public beautify(entity: Entity) {
+  public beautify(text: string, entity: Entity) {
     const cleanEntity = this.cleanEntity(entity);
     // if (this.beautifyDataloaderCacheMap.has(stringify(cleanEntity))) {
     //   console.info("Beautify cache hit");
     // }
-    return this.beautifyDataloader.load(cleanEntity);
+    return this.beautifyDataloader.load({
+      entity: cleanEntity,
+      text,
+    });
   }
 
-  private internalBeautify(entity: Entity) {
+  private internalBeautify({ entity, text }: BeautifyRequest) {
     const options: LanguageOptionValues = {
       [this.languageName]: entity.options,
     };
     const data = {
       languageName: this.languageName,
       options,
-      text: this.text,
+      text,
     };
     return this.unibeautify.beautify(data);
   }
 
-  private get desiredText(): string {
+  protected get desiredText(): string {
     return this.userData.desiredText;
   }
 
-  private get text(): string {
+  protected get originalText(): string {
     return this.userData.originalText;
   }
 
@@ -579,7 +579,7 @@ export class UnibeautifyGenetic extends Genetic.Genetic<Entity, UserData> {
   }: Genetic.Notification<Entity>) {
     console.log(generation, population[0].fitness, isFinished);
     if (isFinished) {
-      this.beautify(population[0].entity).then(beautifiedText => {
+      this.beautify(this.originalText, population[0].entity).then(beautifiedText => {
         console.log(`Solution after ${generation} generations:`);
         console.log(JSON.stringify(population[0], null, 2));
         console.log(JSON.stringify(stats, null, 2));
@@ -591,4 +591,14 @@ export class UnibeautifyGenetic extends Genetic.Genetic<Entity, UserData> {
       });
     }
   }
+}
+
+export interface BeautifyRequest {
+  entity: Entity;
+  text: string;
+}
+
+export interface Options {
+  configuration: Partial<Genetic.Configuration>;
+  userData: UserData;
 }
