@@ -3,9 +3,7 @@ import prettier from "@unibeautify/beautifier-prettier";
 import jsBeautify from "@unibeautify/beautifier-js-beautify";
 import fileBeautifier from "@unibeautify/beautifier-file";
 
-import {
-  ImportantOptionsRegistryBuilder,
-} from "../src/OptionImportance";
+import { ImportantOptionsRegistryBuilder } from "../src/OptionImportance";
 
 const beautifiers: Beautifier[] = [prettier, jsBeautify, fileBeautifier];
 

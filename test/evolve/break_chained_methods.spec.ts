@@ -10,17 +10,25 @@ describe("break_chained_methods", () => {
     desiredText: `foo.bar()\n  .baz();`,
   });
 
-  testGenetic("break_chained_methods1", {
-    beautifiers: [prettier, jsBeautify],
-    language: "JavaScript",
-    originalText: `this.$("#fileName").val().addClass("disabled")\n  .prop("disabled", true)`,
-    desiredText: `this.$("#fileName")\n  .val()\n  .addClass("disabled")\n  .prop("disabled", true)\n`,
-  }, true);
+  testGenetic(
+    "break_chained_methods1",
+    {
+      beautifiers: [prettier, jsBeautify],
+      language: "JavaScript",
+      originalText: `this.$("#fileName").val().addClass("disabled")\n  .prop("disabled", true)`,
+      desiredText: `this.$("#fileName")\n  .val()\n  .addClass("disabled")\n  .prop("disabled", true)\n`,
+    },
+    true
+  );
 
-  testGenetic("break_chained_methods2", {
-    beautifiers: [prettier, jsBeautify],
-    language: "JavaScript",
-    originalText: `this.$("#fileName").val().addClass("disabled")\n  .prop("disabled", true)`,
-    desiredText: `this.$("#fileName").val().addClass("disabled")\n  .prop("disabled", true)`,
-  }, true);
+  testGenetic(
+    "break_chained_methods2",
+    {
+      beautifiers: [prettier, jsBeautify],
+      language: "JavaScript",
+      originalText: `this.$("#fileName").val().addClass("disabled")\n  .prop("disabled", true)`,
+      desiredText: `this.$("#fileName").val().addClass("disabled")\n  .prop("disabled", true)`,
+    },
+    true
+  );
 });
