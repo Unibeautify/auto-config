@@ -212,7 +212,11 @@ genetic.notification = function(
     console.log(
       `${progress}% progress... (${generation} of ${configuration.iterations})`
     );
-    console.log(`Last generation with same fitness: ${this.lastGenWithSameFitness(bestFromPop.fitness)}`);
+    console.log(
+      `Last generation with same fitness: ${this.lastGenWithSameFitness(
+        bestFromPop.fitness
+      )}`
+    );
   }
 };
 genetic.evolve().catch(console.error);
