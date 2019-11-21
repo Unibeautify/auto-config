@@ -52,7 +52,7 @@
   "dependencies": {
     "@glavin001/genetic-js": "^0.2.1",
     "@unibeautify/beautifier-file": "file:../beautifier-file",
-    "dataloader": "^1.4.0",
+    "dataloader": "^2.0.0",
     "fast-levenshtein": "^2.0.6",
     "json-stable-stringify": "^1.0.1",
     "lodash": "^4.17.10"
