@@ -185,8 +185,7 @@ genetic.notification = function(
 
         const { configuration } = this as any;
         const progress: string = (
-          generation /
-          configuration.iterations *
+          (generation / configuration.iterations) *
           100
         ).toFixed(2);
         console.log(
@@ -205,14 +204,17 @@ genetic.notification = function(
     console.log("-".repeat(20));
     const { configuration } = this as any;
     const progress: string = (
-      generation /
-      configuration.iterations *
+      (generation / configuration.iterations) *
       100
     ).toFixed(2);
     console.log(
       `${progress}% progress... (${generation} of ${configuration.iterations})`
     );
-    console.log(`Last generation with same fitness: ${this.lastGenWithSameFitness(bestFromPop.fitness)}`);
+    console.log(
+      `Last generation with same fitness: ${this.lastGenWithSameFitness(
+        bestFromPop.fitness
+      )}`
+    );
   }
 };
 genetic.evolve().catch(console.error);
