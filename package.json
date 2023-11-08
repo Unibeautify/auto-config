@@ -28,7 +28,7 @@
   },
   "homepage": "https://github.com/Unibeautify/auto-config#readme",
   "devDependencies": {
-    "@types/fast-levenshtein": "0.0.1",
+    "@types/fast-levenshtein": "0.0.4",
     "@types/jest": "^22.2.3",
     "@types/json-stable-stringify": "^1.0.32",
     "@types/lodash": "^4.14.110",
